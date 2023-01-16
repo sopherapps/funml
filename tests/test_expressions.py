@@ -7,7 +7,7 @@ def test_expression_composition():
     add = lambda x, a: x + a
 
     add7 = fn(
-        let(int, "a") <= 7,
+        let(int, a=7),
         add,
     )
 

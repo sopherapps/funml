@@ -4,10 +4,17 @@ from typing import Type, Any
 
 def let(
     t: Type,
-    v: Any,
+    *args,
+    **kwargs,
 ) -> "_Assignment":
     """Creates an assignment in a user-friendly way"""
-    return _Assignment(var=v, t=t)
+    if len(args) == 1:
+        return _Assignment(var=args[0], t=t)
+    elif len(kwargs) == 1:
+        [(var, val)] = kwargs.items()
+        return _Assignment(var=var, t=t) <= val
+
+    raise ValueError(f"kwargs passed should be only 1, got {len(kwargs)}")
 
 
 class _Assignment:
