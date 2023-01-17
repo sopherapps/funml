@@ -1,7 +1,6 @@
 import pytest
 
-from funml.assignments import let
-from funml.expressions import fn
+from funml import fn, let
 
 
 def test_let_sets_internal_value():
@@ -16,6 +15,14 @@ def test_let_sets_internal_value():
 
     for (assign, expected) in test_data:
         assert assign() == expected
+
+
+def test_let_can_be_piped():
+    """let() can be piped"""
+
+    v = let(int, x=9) >> (lambda x: x + 10) >> (lambda y: y * 20) >> str
+
+    assert v() == "380"
 
 
 def test_let_sets_value_in_context():
