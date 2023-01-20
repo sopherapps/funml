@@ -4,13 +4,13 @@ Results in something like:
 
 Initialization
 --
-enum(Color = e("RED") | e("BLUE").of({'h': str, 's': str}) | e("GREEN").of((int, str)))
+>> enum(Color = e("RED") | e("BLUE").of({'h': str, 's': str}) | e("GREEN").of((int, str)))
 
 Usage
 --
-r = Color.RED
-g = Color.GREEN(6, "string")
-b = Color.BLUE({'h': 'when', 's': 'how'})
+>> r = Color.RED
+>> g = Color.GREEN(6, "string")
+>> b = Color.BLUE({'h': 'when', 's': 'how'})
 """
 import typing
 from typing import Type, Union, Tuple, Dict, Optional, Any
