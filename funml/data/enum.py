@@ -15,6 +15,8 @@ b = Color.BLUE({'h': 'when', 's': 'how'})
 import typing
 from typing import Type, Union, Tuple, Dict, Optional, Any
 
+from funml import utils
+
 
 def enum(**kwargs: "EnumMeta") -> type:
     """Creates an enum"""
@@ -53,31 +55,15 @@ def _is_valid(
     if signature is None:
         return True
     elif isinstance(signature, tuple) and isinstance(value, tuple):
-        return all([_is_type(v, sig) for sig, v in zip(signature, value)])
+        return all([utils.is_type(v, sig) for sig, v in zip(signature, value)])
     elif isinstance(signature, dict) and len(value) == 1 and isinstance(value[0], dict):
         return all(
             [
-                _is_type(value[0].get(sig_key, None), sig_type)
+                utils.is_type(value[0].get(sig_key, None), sig_type)
                 for sig_key, sig_type in signature.items()
             ]
         )
     return False
-
-
-def _is_type(value: Any, cls: Any) -> bool:
-    """Checks whether the given value is of the given type.
-
-    Note: For now, using Generics won't be type checked that well
-    Also subscriptable types are not really being checked well
-    """
-    if cls in (Any,):
-        return True
-
-    _type = cls
-    if isinstance(cls, typing._GenericAlias):
-        _type = getattr(cls, "__origin__")
-
-    return isinstance(value, _type)
 
 
 class Enum:

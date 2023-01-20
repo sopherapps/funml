@@ -18,7 +18,7 @@ A collection of utilities to help write python as though it were an ML-kind of f
 - [x] piping 
 - immutable compound and simple data types
 - [x] enums 
-- records
+- [x] records
 - [x] monads of Option, Result to express probably nothing or probably an error
 - conditional expressions (e.g. if constructs that evaluate to values and can be used in assignments)
 - implicit returns of the last expression 
