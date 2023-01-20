@@ -77,7 +77,7 @@ def _is_type(value: Any, cls: Any) -> bool:
     if isinstance(cls, typing._GenericAlias):
         _type = getattr(cls, "__origin__")
 
-    return isinstance(value, _type) or issubclass(value, _type)
+    return isinstance(value, _type)
 
 
 class Enum:

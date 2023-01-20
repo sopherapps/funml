@@ -10,7 +10,7 @@ def test_builtin_enums():
     b2 = Option.SOME(60)
     b3 = Option.SOME(60)
     c = Result.OK(900)
-    d = Result.ERR(TypeError)
+    d = Result.ERR(TypeError("some error"))
 
     assert b2 != b
     assert b3 == b2
@@ -29,6 +29,10 @@ def test_enum_type_check():
 
     with pytest.raises(TypeError):
         _ = Result.ERR(0)
+
+    with pytest.raises(TypeError):
+        # we need an instance not a class
+        _ = Result.ERR(Exception)
 
     with pytest.raises(TypeError):
         _ = Result.ERR(None)
