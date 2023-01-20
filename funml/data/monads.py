@@ -11,4 +11,4 @@ Option = enum(Option=e("NONE") | e("SOME").of((Any,)))
 
 
 # Result represents a value that is potentially an exception
-Result = enum(Option=e("ERR").of((Exception,)) | e("OK").of((Any,)))
+Result = enum(Result=e("ERR").of((Exception,)) | e("OK").of((Any,)))
