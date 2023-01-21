@@ -16,7 +16,7 @@ A collection of utilities to help write python as though it were an ML-kind of f
 - destructing assignments (let {a, _} = door)
 - [x] simpler function composition with function being defined as one would define a variable
 - [x] piping 
-- immutable compound and simple data types
+- [x] immutable compound and simple data types
 - [x] enums 
 - [x] records
 - [x] monads of Option, Result to express probably nothing or probably an error
