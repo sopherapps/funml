@@ -12,7 +12,6 @@ Usage
 >> g = Color.GREEN(6, "string")
 >> b = Color.BLUE({'h': 'when', 's': 'how'})
 """
-import typing
 from typing import Type, Union, Tuple, Dict, Optional, Any
 
 from funml import utils

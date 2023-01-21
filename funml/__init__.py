@@ -1,5 +1,7 @@
 """funml is a functional-programming take on python
 """
-from funml.lib import let, fn
-from funml.data.enum import enum, e
-from funml.data.monads import Option, Result
+from .lib import let, fn
+from .data.enum import enum, e
+from .data.monads import Option, Result
+from .data.records import record
+from .data.lists import l
