@@ -21,9 +21,6 @@ Usage
 # transforming data (immutably) i.e. new list is got
 >> value = list1.map(lambda v: v + 9)
 
-# destructuring list: the last argument gets all remaining items as one list
->> let(int, l(v, y, others)) <= list1
-
 # iterating data using head and tail
 >> loop = (fn(match(v)
             .case(l(), do= fn())
