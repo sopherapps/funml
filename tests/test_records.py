@@ -37,8 +37,8 @@ def test_records_created():
     assert not green <= red
 
 
-def test_field_validation():
-    """Required fields are not optional"""
+def test_unexpected_fields():
+    """Unexpected fields throw error"""
     Color = record(Color={"r": int, "g": int, "b": int, "a": Optional[int]})
 
     try:
@@ -47,7 +47,7 @@ def test_field_validation():
         assert False, f"'Color' raised an exception {exc}"
 
     with pytest.raises(TypeError):
-        _ = Color(r=56, b=45, a=5)
+        _ = Color(r=56, o=45, a=5)
 
 
 def test_no_extra_fields():

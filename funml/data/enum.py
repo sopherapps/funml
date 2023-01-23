@@ -89,7 +89,7 @@ class Enum(types.MLType):
 
     def generate_case(self, expn: types.Expression):
         """Generates a case statement for pattern matching"""
-        op = lambda *args: expn(**args)
+        op = lambda *args: expn(*args)
         if self._value is not None:
             op = lambda arg: expn(arg._get_captured_value())
 

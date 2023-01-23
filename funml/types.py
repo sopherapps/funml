@@ -4,11 +4,6 @@ from typing import Any, Type, Union, Callable, Optional, List, Tuple, TYPE_CHECK
 
 from funml import errors
 
-if TYPE_CHECKING:
-    from .data.enum import Enum
-    from .data.lists import IList
-    from .data.records import Record
-
 
 class Assignment:
     """Class for making assignments"""

@@ -40,18 +40,14 @@ def _is_valid(kwargs: Dict[str, Any], annotations: Dict[str, Any]):
     if len(kwargs) > len(annotations):
         return False
 
-    return all(
-        [
-            utils.is_type(kwargs.get(sig_key, None), sig_type)
-            for sig_key, sig_type in annotations.items()
-        ]
-    )
+    return all([utils.is_type(v, annotations.get(k, None)) for k, v in kwargs.items()])
 
 
 class Record(types.MLType):
     """Base class for all Records"""
 
     def __init__(self, **kwargs: Any):
+        self.__attrs = kwargs
         annotations = self.__annotations__
         if not _is_valid(kwargs, annotations):
             raise TypeError(
@@ -66,3 +62,20 @@ class Record(types.MLType):
         if isinstance(other, Record):
             return self == other
         return False
+
+    def _is_like(self, other):
+        """Checks that a value has the given pattern"""
+        if not isinstance(other, Record) or self.__class__ != other.__class__:
+            return False
+
+        for k, v in self.__attrs.items():
+            if getattr(other, k, None) != v:
+                return False
+
+        return True
+
+    def generate_case(self, expn: types.Expression):
+        """Generates a case statement for pattern matching"""
+        return self._is_like, types.Expression(
+            types.Operation(func=lambda *args: expn(*args))
+        )
