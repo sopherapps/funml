@@ -65,7 +65,7 @@ def _is_valid(
     return False
 
 
-class Enum:
+class Enum(types.MLType):
     """An enumerable data type"""
 
     _signature: Optional[Union[Tuple[Type, ...], Dict[str, Type]]] = None

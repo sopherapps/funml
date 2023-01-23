@@ -42,7 +42,7 @@ def l(*args: Any) -> "IList":
     return IList(*args)
 
 
-class IList:
+class IList(types.MLType):
     def __init__(self, *args: Any):
         prev: Optional[Node] = None
         for v in reversed(args):
@@ -81,10 +81,6 @@ class IList:
     def filter(self, func: Callable):
         """Returns only items that return true when f is called on them"""
         return IList(*filter(func, self))
-
-    def generate_case(self, expn: types.Expression):
-        """Generates a case statement for pattern matching"""
-        raise NotImplemented("generate case not implemented")
 
 
 class Node:

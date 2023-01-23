@@ -48,7 +48,7 @@ def _is_valid(kwargs: Dict[str, Any], annotations: Dict[str, Any]):
     )
 
 
-class Record:
+class Record(types.MLType):
     """Base class for all Records"""
 
     def __init__(self, **kwargs: Any):
@@ -66,7 +66,3 @@ class Record:
         if isinstance(other, Record):
             return self == other
         return False
-
-    def generate_case(self, expn: types.Expression):
-        """Generates a case statement for pattern matching"""
-        raise NotImplemented("generate case not implemented")

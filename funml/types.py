@@ -58,6 +58,14 @@ class Context(dict):
         return self.__last_computed_val
 
 
+class MLType:
+    """The base type for all ML-enabled types like records, enums etc."""
+
+    def generate_case(self, expn: "Expression"):
+        """Generates a case statement for pattern matching"""
+        raise NotImplemented("generate case not implemented")
+
+
 class Expression:
     """Expressions which compute themselves and return an Assignment"""
 
@@ -101,7 +109,7 @@ class MatchExpression(Expression):
         self._matches: List[Tuple[Callable, Expression]] = []
         self.__arg = arg
 
-    def case(self, obj: Union["Enum", "Record", "IList"], do: Expression):
+    def case(self, obj: MLType, do: Expression):
         """adds a case to a match statement"""
         check, expn = obj.generate_case(do)
         self.__add_match(check=check, expn=expn)
