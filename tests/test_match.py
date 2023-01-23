@@ -54,28 +54,29 @@ def test_match_records():
 def test_match_lists():
     """lists can be pattern matched"""
     test_data = [
-        # (l(2, 3, 56, 34), "90"),
+        (l(2, 3, 56, 34), "90"),
         (l(2, 3, 56, 36), "59"),
-        # (l("foo", 6.0, 89), "bar"),
-        # (l("foo", 6.0), "one foo"),
-        # (l(True, "foo", 6.0, 7), "True, foo, 6.0, 7"),
-        # (l(), "Empty"),
+        (l("foo", 6.0, 89), "bar"),
+        (l("foo", 6.0), "one foo"),
+        (l(True, "foo", 6.0, 7), "True, foo, 6.0, 7"),
+        (l(), "Empty"),
     ]
 
     # ... is used to capture values to be used in the matching expression
     for arg, expected in test_data:
         value = (
-            match(arg).case(
+            match(arg)
+            .case(
                 l(2, ..., 36),
                 do=fn(lambda rest: f"{reduce(lambda a, b: a+b, rest, 0)}"),
             )
-            # .case(
-            #     l(2, 3, ...), do=fn(lambda rest: f"{reduce(lambda a, b: a+b, rest, 0)}")
-            # )
-            # .case(l("foo", 6.0), do=fn(lambda: "one foo"))
-            # .case(l("foo", 6.0, ...), do=fn(lambda: "bar"))
-            # .case(l(...), do=fn(lambda rest: ", ".join(rest.map(lambda x: f"{x}"))))
-            # .case(l(), do=fn(lambda: "Empty"))
+            .case(
+                l(2, 3, ...), do=fn(lambda rest: f"{reduce(lambda a, b: a+b, rest, 0)}")
+            )
+            .case(l("foo", 6.0), do=fn(lambda: "one foo"))
+            .case(l("foo", 6.0, ...), do=fn(lambda: "bar"))
+            .case(l(...), do=fn(lambda rest: ", ".join(rest.map(lambda x: f"{x}"))))
+            .case(l(), do=fn(lambda: "Empty"))
         )
 
         assert value() == expected
