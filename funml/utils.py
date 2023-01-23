@@ -24,4 +24,4 @@ def is_type(value: Any, cls: Any) -> bool:
         else:
             _type = origin
 
-    return isinstance(value, _type)
+    return isinstance(value, _type) or value == _type

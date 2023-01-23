@@ -15,7 +15,7 @@ And utilizing the record:
 from dataclasses import dataclass
 from typing import Dict, Any
 
-from funml import utils
+from funml import utils, types
 
 
 def record(**kwargs: Dict[str, Any]):
@@ -66,3 +66,7 @@ class Record:
         if isinstance(other, Record):
             return self == other
         return False
+
+    def generate_case(self, expn: types.Expression):
+        """Generates a case statement for pattern matching"""
+        raise NotImplemented("generate case not implemented")

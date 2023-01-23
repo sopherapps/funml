@@ -14,7 +14,7 @@ Usage
 """
 from typing import Type, Union, Tuple, Dict, Optional, Any
 
-from funml import utils
+from funml import utils, types
 
 
 def enum(**kwargs: "EnumMeta") -> type:
@@ -87,6 +87,14 @@ class Enum:
     def name(self):
         return self._name
 
+    def generate_case(self, expn: types.Expression):
+        """Generates a case statement for pattern matching"""
+        op = lambda *args: expn(**args)
+        if self._value is not None:
+            op = lambda arg: expn(arg._get_captured_value())
+
+        return self._is_like, types.Expression(types.Operation(func=op))
+
     def __eq__(self, other: "Enum"):
         return (
             self.__class__ == other.__class__
@@ -94,11 +102,22 @@ class Enum:
             and self._value == other._value
         )
 
-    def __le__(self, other: Any) -> bool:
-        """'<=' is the match operator."""
-        if isinstance(other, Enum):
-            return self == other
-        return False
+    def _is_like(self, other):
+        """Checks that a value has the given pattern"""
+        if not isinstance(other, Enum):
+            return False
+
+        return (
+            self.__class__ == other.__class__
+            and self._name == other._name
+            and (self._value == other._value or _is_valid(other._value, self._value))
+        )
+
+    def _get_captured_value(self):
+        """Gets the captured value for a given enum instance"""
+        if isinstance(self._signature, tuple) and len(self.value) == 1:
+            return self.value[0]
+        return self.value
 
 
 class EnumMeta:

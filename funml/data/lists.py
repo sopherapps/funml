@@ -34,6 +34,8 @@ Usage
 """
 from typing import Any, Optional, Callable
 
+from funml import types
+
 
 def l(*args: Any) -> "IList":
     """Creates an immutable list"""
@@ -79,6 +81,10 @@ class IList:
     def filter(self, func: Callable):
         """Returns only items that return true when f is called on them"""
         return IList(*filter(func, self))
+
+    def generate_case(self, expn: types.Expression):
+        """Generates a case statement for pattern matching"""
+        raise NotImplemented("generate case not implemented")
 
 
 class Node:

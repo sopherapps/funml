@@ -1,5 +1,13 @@
 """All types used by funml"""
-from typing import Any, Type, Union, Callable, Optional
+from inspect import signature
+from typing import Any, Type, Union, Callable, Optional, List, Tuple, TYPE_CHECKING
+
+from funml import errors
+
+if TYPE_CHECKING:
+    from .data.enum import Enum
+    from .data.lists import IList
+    from .data.records import Record
 
 
 class Assignment:
@@ -85,15 +93,65 @@ class Expression:
         self._context.set_last_computed_val(val=val)
 
 
+class MatchExpression(Expression):
+    """Expression used when matching"""
+
+    def __init__(self, arg: Any):
+        super().__init__(f=Operation(self))
+        self._matches: List[Tuple[Callable, Expression]] = []
+        self.__arg = arg
+
+    def case(self, obj: Union["Enum", "Record", "IList"], do: Expression):
+        """adds a case to a match statement"""
+        check, expn = obj.generate_case(do)
+        self.__add_match(check=check, expn=expn)
+        return self
+
+    def __add_match(self, check: Callable, expn: Expression):
+        """Adds a match to the list of matches"""
+        if not callable(check):
+            raise TypeError(f"the check is supposed to be a callable. Got {check}")
+
+        if not isinstance(expn, Expression):
+            raise TypeError(
+                f"expected expression to be an Expression. Got {type(expn)}"
+            )
+
+        self._matches.append((check, expn))
+
+    def __call__(self):
+        """This class transforms into a conditional callable"""
+        arg = self.__arg
+
+        for check, expn in self._matches:
+            if check(arg):
+                return expn(arg)
+
+        raise errors.MatchError(arg)
+
+
 class Operation:
     """A computation"""
 
-    def __init__(self, f: Callable):
-        self.__f = f
+    def __init__(self, func: Callable):
+        sig = _get_func_signature(func)
+        if len(sig.parameters) == 0:
+            # be more fault tolerant by using variable params
+            self.__f = lambda *args: func()
+        else:
+            self.__f = func
 
     def __call__(self, *args: Any, **kwargs: "Context") -> Any:
         """Handles the actual computation"""
         return self.__f(*args, **kwargs)
+
+
+def _get_func_signature(func: Callable):
+    """Gets the function signature of the given callable"""
+    try:
+        return signature(func)
+    except ValueError:
+        return signature(func.__call__)
 
 
 def _to_expn(v: Union["Expression", "Assignment", Callable, Any]) -> "Expression":
@@ -105,7 +163,7 @@ def _to_expn(v: Union["Expression", "Assignment", Callable, Any]) -> "Expression
     elif isinstance(v, Callable):
         return Expression(Operation(v))
     # return a noop expression
-    return Expression(Operation(f=lambda: v))
+    return Expression(Operation(func=lambda: v))
 
 
 def _append_expn(

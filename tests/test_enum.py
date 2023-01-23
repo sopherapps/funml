@@ -11,15 +11,15 @@ def test_builtin_enums():
     b3 = Option.SOME(60)
     c = Result.OK(900)
     d = Result.ERR(TypeError("some error"))
+    # works when associated data is the EXACT type as in definition.
+    # this is useful when pattern matching
+    e = Result.ERR(Exception)
 
     assert b2 != b
     assert b3 == b2
     assert a != b
     assert c != d
-    assert not (b2 <= b)
-    assert b3 <= b2
-    assert not (a <= b)
-    assert not (c <= d)
+    assert isinstance(e, Result.ERR)
 
 
 def test_enum_type_check():
@@ -31,8 +31,8 @@ def test_enum_type_check():
         _ = Result.ERR(0)
 
     with pytest.raises(TypeError):
-        # we need an instance not a class
-        _ = Result.ERR(Exception)
+        # we need either an instance of the class or the class itself
+        _ = Result.ERR(ValueError)
 
     with pytest.raises(TypeError):
         _ = Result.ERR(None)
