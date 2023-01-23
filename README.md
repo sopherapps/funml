@@ -12,7 +12,7 @@ A collection of utilities to help write python as though it were an ML-kind of f
 
 ## Features
 
-- pattern matching
+- [x] pattern matching
 - destructing assignments (let {a, _} = door)
 - [x] simpler function composition with function being defined as one would define a variable
 - [x] piping 

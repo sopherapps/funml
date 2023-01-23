@@ -42,7 +42,7 @@ def match(arg: Any) -> "MatchExpression":
             .case(Option.SOME(int), do=fn(lambda v: v + 6)) \
             .case(Option.NONE, do=fn())
 
-    # records
+    # records: use ... to capture value
     >> value2 = match(raw_value2)\
                 .case(Color(r, g, ...), do=fn(lambda r, g: r + g)) \
                 .case(ExamResult(total), do= fn(lambda v: v))

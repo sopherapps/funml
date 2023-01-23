@@ -1,6 +1,6 @@
 """All types used by funml"""
 from inspect import signature
-from typing import Any, Type, Union, Callable, Optional, List, Tuple, TYPE_CHECKING
+from typing import Any, Type, Union, Callable, Optional, List, Tuple
 
 from funml import errors
 
