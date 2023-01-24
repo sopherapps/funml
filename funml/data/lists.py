@@ -47,7 +47,7 @@ class IList(types.MLType):
         self.__pre_capture: Optional[List[Any]] = None
         self.__post_capture: Optional[List[Any]] = None
         self.__list: Optional[List[Any]] = None
-        self._head: Optional["Node"] = None
+        self._head: Optional["_Node"] = None
 
         self.__set_size_from_args(args)
         self.__initialize_from_tuple(args)
@@ -106,7 +106,7 @@ class IList(types.MLType):
         return self.__post_capture
 
     @classmethod
-    def __from_node(cls, head: "Node"):
+    def __from_node(cls, head: "_Node"):
         """Generates a slice of the old IList given one node of that list
 
         In this case, the new list shares the same memory as the old list
@@ -127,16 +127,16 @@ class IList(types.MLType):
         Initializes the current IList, generating nodes corresponding to the args passed
         and setting any capture sections if `...` is found
         """
-        prev: Optional[Node] = None
+        prev: Optional[_Node] = None
         for i, v in enumerate(reversed(args)):
-            node = Node(_data=v, _next=prev)
+            node = _Node(_data=v, _next=prev)
             prev = node
 
             if v is ...:
                 self.__capture_start = self._size - i - 1
                 self.__capture_tail_len = i
 
-        self._head: Optional["Node"] = prev
+        self._head: Optional["_Node"] = prev
 
     def _is_like(self, other):
         """Checks that a value has the given pattern"""
@@ -185,10 +185,10 @@ class IList(types.MLType):
         return self._self_list == other._self_list
 
 
-class Node:
+class _Node:
     __slots__ = ["_data", "_next"]
 
-    def __init__(self, _data: Any, _next: Optional["Node"] = None):
+    def __init__(self, _data: Any, _next: Optional["_Node"] = None):
         self._data = _data
         self._next = _next
 

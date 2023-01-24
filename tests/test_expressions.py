@@ -1,5 +1,4 @@
-from funml import fn, let
-from funml.lib import val
+from funml import fn, let, val
 
 
 def test_expression_composition():

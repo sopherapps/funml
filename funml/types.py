@@ -2,7 +2,7 @@
 from inspect import signature
 from typing import Any, Type, Union, Callable, Optional, List, Tuple
 
-from funml import errors, utils
+from funml import errors
 
 
 class Assignment:

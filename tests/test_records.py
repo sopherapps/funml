@@ -2,7 +2,7 @@ from typing import Optional
 
 import pytest
 
-from funml.data.records import record
+from funml import record
 
 
 def test_records_created():
