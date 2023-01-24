@@ -6,11 +6,10 @@ from funml import fn, let
 def test_let_sets_internal_value():
     """let() a value in the internal value"""
     test_data = [
-        (let(int, "x"), None),
-        (let(int, "x") <= 90, 90),
+        (let(int, x=90), 90),
         (let(str, foo="bar"), "bar"),
         (let(dict, data={"bar": "bel"}), {"bar": "bel"}),
-        (let(float, "y") <= 900.0, 900.0),
+        (let(float, y=900.0), 900.0),
     ]
 
     for (assign, expected) in test_data:
@@ -32,9 +31,8 @@ def test_let_sets_value_in_context():
         return kwargs
 
     test_data = [
-        (let(int, "x"), {"x": None}),
-        (let(int, "x") <= 90, {"x": 90}),
-        (let(float, "y") <= 900.0, {"y": 900.0}),
+        (let(int, x=90), {"x": 90}),
+        (let(float, y=900.0), {"y": 900.0}),
         (let(str, foo="bar"), {"foo": "bar"}),
         (let(dict, data={"bar": "bel"}), {"data": {"bar": "bel"}}),
     ]
@@ -44,18 +42,8 @@ def test_let_sets_value_in_context():
         assert expn() == expected
 
 
-def test_let_checks_types_when_initializing_with_match_operator():
-    """let() <= value makes sure `value` is of right type when using <="""
-    assign = let(float, "f")
-    test_data = ["string", b"bytes", 90, {"P": 9}, (9, "tuple")]
-
-    for v in test_data:
-        with pytest.raises(TypeError):
-            _ = assign <= v
-
-
 def test_let_checks_types_when_initializing():
-    """let() <= value makes sure `value` is of right type"""
+    """let() makes sure `value` is of right type"""
     test_data = [
         (int, "string"),
         (bytes, "foo"),

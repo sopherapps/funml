@@ -7,15 +7,12 @@ from .types import Assignment, Expression, _append_expn, _to_expn, MatchExpressi
 
 def let(
     t: Type,
-    *args,
     **kwargs,
 ) -> Assignment:
     """Creates an assignment in a user-friendly way"""
-    if len(args) == 1:
-        return Assignment(var=args[0], t=t)
-    elif len(kwargs) == 1:
+    if len(kwargs) == 1:
         [(_var, _val)] = kwargs.items()
-        return Assignment(var=_var, t=t) <= _val
+        return Assignment(var=_var, t=t, val=_val)
 
     raise ValueError(f"kwargs passed should be only 1, got {len(kwargs)}")
 

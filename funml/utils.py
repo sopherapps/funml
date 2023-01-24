@@ -1,6 +1,6 @@
 """Common utility functions"""
 import typing
-from typing import Any
+from typing import Any, Type
 
 
 def is_type(value: Any, cls: Any) -> bool:
@@ -25,3 +25,10 @@ def is_type(value: Any, cls: Any) -> bool:
             _type = origin
 
     return isinstance(value, _type) or value == _type
+
+
+def is_valid_type(val: Any, t: Type) -> bool:
+    """Checks the validity of the value"""
+    if not isinstance(val, t):
+        raise TypeError(f"expected type {t}, got {type(val)}")
+    return True

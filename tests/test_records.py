@@ -22,19 +22,9 @@ def test_records_created():
     assert green == another_green
     assert red == another_red
 
-    # match `<=`
-    assert blue <= another_blue
-    assert green <= another_green
-    assert red <= another_red
-
     assert blue != green
     assert red != blue
     assert green != red
-
-    # match `<=`
-    assert not blue <= green
-    assert not red <= blue
-    assert not green <= red
 
 
 def test_unexpected_fields():

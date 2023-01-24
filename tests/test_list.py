@@ -62,7 +62,7 @@ def test_head():
 
 
 def test_tail():
-    """tail lazily returns (as a generator) the list of items except the first"""
+    """tail returns the list (IList) of items except the first"""
     test_data = [
         (l(2, 3, 5), l(3, 5)),
         (l("foo", 6.0), l(6.0)),
@@ -70,5 +70,4 @@ def test_tail():
     ]
 
     for item, expected in test_data:
-        # got = list(item.tail)
         assert item.tail == expected

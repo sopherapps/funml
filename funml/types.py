@@ -2,23 +2,18 @@
 from inspect import signature
 from typing import Any, Type, Union, Callable, Optional, List, Tuple
 
-from funml import errors
+from funml import errors, utils
 
 
 class Assignment:
     """Class for making assignments"""
 
-    def __init__(self, var: Any, t: Type = type(None)):
+    def __init__(self, var: Any, t: Type = type(None), val: Any = None):
         self.__var = var
         self.__t = t
-        self.__val = None
 
-    def __le__(self, val: Any) -> "Assignment":
-        """'<=' is the match operator. Here it is being used to assign a value."""
-        if not isinstance(val, self.__t):
-            raise TypeError(f"expected type {self.__t}, got {type(val)}")
-        self.__val = val
-        return self
+        if utils.is_valid_type(val=val, t=t):  # or raise error
+            self.__val = val
 
     def __rshift__(self, nxt: Union["Expression", "Assignment", Callable]):
         """This makes piping using the '>>' symbol possible

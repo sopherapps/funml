@@ -30,7 +30,7 @@ def record(**kwargs: Dict[str, Any]):
             (Record,),
             {"__annotations__": annotations, "__slots__": tuple(annotations.keys())},
         ),
-        order=False,
+        # order=False,
         init=False,
     )
 
@@ -56,12 +56,6 @@ class Record(types.MLType):
 
         for k, v in kwargs.items():
             setattr(self, k, v)
-
-    def __le__(self, other: Any) -> bool:
-        """'<=' is the match operator."""
-        if isinstance(other, Record):
-            return self == other
-        return False
 
     def _is_like(self, other):
         """Checks that a value has the given pattern"""

@@ -62,7 +62,7 @@ def test_match_lists():
         (l(), "Empty"),
     ]
 
-    # ... is used to capture values to be used in the matching expression
+    # '...' is used to capture values to be used in the matching expression
     for arg, expected in test_data:
         value = (
             match(arg)
