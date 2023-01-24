@@ -1,6 +1,39 @@
 import pytest
 
-from funml import Option, Result
+from funml import Option, Result, enum
+
+
+def test_enum_creation():
+    """enum and e are used to create enums"""
+    Date = (
+        enum("Date")
+        .opt("January", shape=int)
+        .opt("February", shape=int)
+        .opt("March", shape=int)
+        .opt("April", shape=int)
+        .opt("May", shape=int)
+        .opt("June", shape=int)
+        .opt("July", shape=int)
+        .opt("August", shape=int)
+        .opt("September", shape=int)
+        .opt("October", shape=int)
+        .opt("November", shape=int)
+        .opt("December", shape=int)
+    )
+
+    fifth_march = Date.March(5)
+    sixth_march = Date.March(6)
+    another_sixth_march = Date.March(6)
+    twentieth_may = Date.May(20)
+    thirtieth_december = Date.December(30)
+
+    assert sixth_march == another_sixth_march
+    assert sixth_march != fifth_march
+    assert twentieth_may != thirtieth_december
+    assert twentieth_may != sixth_march
+    assert twentieth_may != fifth_march
+    assert thirtieth_december != sixth_march
+    assert thirtieth_december != fifth_march
 
 
 def test_builtin_enums():

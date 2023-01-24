@@ -4,7 +4,10 @@ Results in something like:
 
 Initialization
 --
->> enum(Color = e("RED") | e("BLUE").of({'h': str, 's': str}) | e("GREEN").of((int, str)))
+>> Color = enum("Color")\
+                .opt("RED")\
+                .opt("BLUE", shape={'h': str, 's': str})\
+                .opt("GREEN", shape=(int, str)))
 
 Usage
 --
@@ -17,33 +20,9 @@ from typing import Type, Union, Tuple, Dict, Optional, Any
 from funml import utils, types
 
 
-def enum(**kwargs: "EnumMeta") -> type:
+def enum(enum_name: str) -> Type["Enum"]:
     """Creates an enum"""
-    if len(kwargs) != 1:
-        raise ValueError(f"required 1 key-word argument, got {len(kwargs)}")
-
-    [(enum_name, enum_meta)] = kwargs.items()
-    new_enum = type(enum_name, (Enum,), {})
-
-    for k in enum_meta:
-        name = f"{enum_name}.{k.name}"
-
-        if isinstance(k.signature, (tuple, dict)):
-            # each option is a subclass of the `new_enum`
-            v = type(name, (new_enum,), {})
-        else:
-            v = new_enum(k.name)
-
-        v._name = name
-        v._signature = k.signature
-        setattr(new_enum, k.name, v)
-
-    return new_enum
-
-
-def e(name: str) -> "EnumMeta":
-    """A user-friendly way to create an EnumMeta"""
-    return EnumMeta(name)
+    return type(enum_name, (Enum,), {})
 
 
 def _is_valid(
@@ -68,16 +47,41 @@ def _is_valid(
 class Enum(types.MLType):
     """An enumerable data type"""
 
-    _signature: Optional[Union[Tuple[Type, ...], Dict[str, Type]]] = None
+    signature: Optional[Union[Tuple[Type, ...], Dict[str, Type]]] = None
     _name: str = ""
 
     def __init__(self, *args: Union[Any, Dict[str, Any], int]):
-        if not _is_valid(args, self._signature):
+        if not _is_valid(args, self.signature):
             raise TypeError(
-                f"expected data type passed to be {self._signature}, got {args}"
+                f"expected data type passed to be {self.signature}, got {args}"
             )
 
         self._value = args
+
+    @classmethod
+    def opt(
+        cls,
+        name: str,
+        shape: Optional[Union[Type, Tuple[Type, ...], Dict[str, Type]]] = None,
+    ) -> Type["Enum"]:
+        """Adds a given option to the enum"""
+        dotted_name = f"{cls.__name__}.{name}"
+        signature = shape
+        if not isinstance(signature, (dict, tuple, type(None))):
+            # transform stuff like shape=int into shape=(int,)
+            signature = (signature,)
+
+        if signature is None:
+            opt_value = cls(name)
+        else:
+            # each option is a subclass of this enum class
+            opt_value = type(dotted_name, (cls,), {})
+
+        opt_value._name = dotted_name
+        opt_value.signature = signature
+
+        setattr(cls, name, opt_value)
+        return cls
 
     @property
     def value(self):
@@ -91,7 +95,7 @@ class Enum(types.MLType):
         """Generates a case statement for pattern matching"""
         op = lambda *args: expn(*args)
         if self._value is not None:
-            op = lambda arg: expn(arg._get_captured_value())
+            op = lambda arg: expn(_get_enum_captured_value(arg))
 
         return self._is_like, types.Expression(types.Operation(func=op))
 
@@ -113,37 +117,9 @@ class Enum(types.MLType):
             and (self._value == other._value or _is_valid(other._value, self._value))
         )
 
-    def _get_captured_value(self):
-        """Gets the captured value for a given enum instance"""
-        if isinstance(self._signature, tuple) and len(self.value) == 1:
-            return self.value[0]
-        return self.value
 
-
-class EnumMeta:
-    def __init__(self, name: str):
-        self.name = name
-        self.signature: Optional[Union[Tuple[Type, ...], Dict[str, Type]]] = None
-        self.prev: Optional["EnumMeta"] = None
-
-    def of(self, signature: Union[Tuple[Type, ...], Dict[str, Type]]):
-        """Sets the data type of the associated data"""
-        self.signature = signature
-        return self
-
-    def __or__(self, other: "EnumMeta") -> "EnumMeta":
-        """'|' is used to combine EnumMeta into a linked list of enumMeta
-
-        e.g. EnumMeta("P") | EnumMeta("O")
-        """
-        other.prev = self
-        return other
-
-    def __iter__(self):
-        """Returns list of EnumMeta in reversed order starting from this one"""
-        yield self
-
-        curr = self.prev
-        while curr is not None:
-            yield curr
-            curr = curr.prev
+def _get_enum_captured_value(instance: Enum):
+    """Gets the captured value for a given enum instance"""
+    if isinstance(instance.signature, tuple) and len(instance.value) == 1:
+        return instance.value[0]
+    return instance.value
