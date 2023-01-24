@@ -12,8 +12,10 @@ class Assignment:
         self.__var = var
         self.__t = t
 
-        if utils.is_valid_type(val=val, t=t):  # or raise error
-            self.__val = val
+        if not isinstance(val, t):
+            raise TypeError(f"expected type {t}, got {type(val)}")
+
+        self.__val = val
 
     def __rshift__(self, nxt: Union["Expression", "Assignment", Callable]):
         """This makes piping using the '>>' symbol possible

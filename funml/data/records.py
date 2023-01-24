@@ -18,12 +18,10 @@ from typing import Dict, Any
 from funml import utils, types
 
 
-def record(**kwargs: Dict[str, Any]):
+def record(annotations: Dict[str, Any]):
     """creates a map-like data structure for storing related data, accessible by attribute"""
-    if len(kwargs) != 1:
-        raise ValueError(f"required 1 key-word argument, got {len(kwargs)}")
 
-    [(record_name, annotations)] = kwargs.items()
+    record_name = utils.generate_random_string()
     return dataclass(
         type(
             record_name,

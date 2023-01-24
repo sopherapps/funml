@@ -1,5 +1,8 @@
 """Common utility functions"""
+import datetime
+import string
 import typing
+import random
 from typing import Any, Type
 
 
@@ -27,8 +30,8 @@ def is_type(value: Any, cls: Any) -> bool:
     return isinstance(value, _type) or value == _type
 
 
-def is_valid_type(val: Any, t: Type) -> bool:
-    """Checks the validity of the value"""
-    if not isinstance(val, t):
-        raise TypeError(f"expected type {t}, got {type(val)}")
-    return True
+def generate_random_string() -> str:
+    """Generates a random string"""
+    timestamp = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S")
+    random_string = "".join(random.choices(string.ascii_letters, k=8))
+    return f"{random_string}{timestamp}"
