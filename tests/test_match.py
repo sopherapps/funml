@@ -57,6 +57,7 @@ def test_match_lists():
         (l(2, 3, 56, 34), "90"),
         (l(2, 3, 56, 36), "59"),
         (l("foo", 6.0, 89), "bar"),
+        (l("any string", 6.0, 89), "woo-hoo"),
         (l("foo", 6.0), "one foo"),
         (l(True, "foo", 6.0, 7), "True, foo, 6.0, 7"),
         (l(), "Empty"),
@@ -73,6 +74,7 @@ def test_match_lists():
             .case(l(2, 3, ...), do=lambda rest: f"{reduce(lambda a, b: a+b, rest, 0)}")
             .case(l("foo", 6.0), do=lambda: "one foo")
             .case(l("foo", 6.0, ...), do=lambda: "bar")
+            .case(l(str, 6.0, ...), do=lambda: "woo-hoo")
             .case(l(...), do=lambda rest: ", ".join(rest.map(lambda x: f"{x}")))
             .case(l(), do=lambda: "Empty")
         )

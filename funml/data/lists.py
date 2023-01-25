@@ -79,6 +79,24 @@ class IList(types.MLType):
 
         return self._is_like, types.Expression(types.Operation(func=op))
 
+    def _is_like(self, other):
+        """Checks that a value has the given pattern"""
+        if not isinstance(other, IList):
+            return False
+
+        if self._size > other._size:
+            return False
+
+        if self.__capture_start is None:
+            return self == other
+
+        pre_capture = other._self_list[: self.__capture_start]
+        post_capture = other._self_list[(len(other) - self.__capture_tail_len) :]
+
+        return _lists_match(
+            schema=self._pre_capture, actual=pre_capture
+        ) and _lists_match(schema=self._post_capture, actual=post_capture)
+
     @property
     def _size(self):
         if self.__size is None:
@@ -137,22 +155,6 @@ class IList(types.MLType):
                 self.__capture_tail_len = i
 
         self._head: Optional["_Node"] = prev
-
-    def _is_like(self, other):
-        """Checks that a value has the given pattern"""
-        if not isinstance(other, IList):
-            return False
-
-        if self._size > other._size:
-            return False
-
-        if self.__capture_start is None:
-            return self == other
-
-        pre_capture = other._self_list[: self.__capture_start]
-        post_capture = other._self_list[(len(other) - self.__capture_tail_len) :]
-
-        return pre_capture == self._pre_capture and post_capture == self._post_capture
 
     def __len__(self):
         return self._size
@@ -217,3 +219,33 @@ class _Node:
 
     def __repr__(self):
         return self.value.__repr__()
+
+
+def _lists_match(schema: List[Any], actual: List[Any]):
+    """Matches two builtin lists"""
+    if schema == actual:
+        # try the simple probably optimised version
+        return True
+
+    if not isinstance(schema, list):
+        raise TypeError(f"must be list, got {type(schema)}")
+
+    if not isinstance(actual, list):
+        raise TypeError(f"must be list, got {type(actual)}")
+
+    if len(schema) != len(actual):
+        return False
+
+    for type_or_val, val in zip(schema, actual):
+        if val == type_or_val:
+            continue
+
+        try:
+            if isinstance(val, type_or_val):
+                continue
+        except TypeError:
+            return False
+
+        return False
+
+    return True
