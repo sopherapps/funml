@@ -1,6 +1,14 @@
 from funml import fn, let, val
 
 
+def test_val():
+    """val just creates an unnamed variable or a literal"""
+    test_data = ["foo", True, 90, 909.0]
+
+    for v in test_data:
+        assert val(v)() == v
+
+
 def test_expression_composition():
     """Expressions can be composed from multiple expressions"""
     add = lambda x, a: x + a
