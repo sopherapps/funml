@@ -111,3 +111,26 @@ def test_match_lists():
         )
 
         assert value() == expected
+
+
+def test_create_reusable_match():
+    """A match expression can be saved in a variable and reused"""
+    type_match = (
+        match()
+        .case(int, do=lambda: "int")
+        .case(str, do=lambda: "str")
+        .case(float, do=lambda: "float")
+        .case(tuple, do=lambda: "tuple")
+        .case(..., do=lambda: "any")
+    )
+
+    test_data = [
+        (90, "int"),
+        (90.0, "float"),
+        ((90,), "tuple"),
+        ("hey", "str"),
+        ({"dict": "woo-hoo"}, "any"),
+    ]
+
+    for arg, expected in test_data:
+        assert type_match(arg) == expected
