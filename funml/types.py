@@ -61,7 +61,6 @@ class Expression:
     def __call__(self, *args, **kwargs):
         """computes self and returns the value"""
         prev_output = self._run_prev_expns(*args, **kwargs)
-        self.clear_prev_expns()
 
         if isinstance(prev_output, Context):
             self._context.update(prev_output)
@@ -139,7 +138,6 @@ class MatchExpression(Expression):
 
         args = [] if arg is None else [arg]
         prev_output = self._run_prev_expns(*args)
-        self.clear_prev_expns()
         if prev_output is not None:
             arg = prev_output
 
