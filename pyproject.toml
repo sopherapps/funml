@@ -14,6 +14,13 @@ pytest = "^7.2.1"
 black = "^22.12.0"
 pre-commit = "^2.21.0"
 
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "^1.4.2"
+mkdocstrings = "^0.20.0"
+mkdocs-material = "^9.0.6"
+mdx-include = "^1.4.2"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

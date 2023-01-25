@@ -1,0 +1,49 @@
+site_name: Funml
+site_description: a collection of utilities to help write python as though it were an ML-kind of functional language like OCaml
+site_url: https://sopherapps.github.io/funml/
+
+theme:
+  name: material
+  palette:
+    - media: '(prefers-color-scheme: light)'
+      scheme: default
+      toggle:
+        icon: material/lightbulb
+        name: Switch to light mode
+    - media: '(prefers-color-scheme: dark)'
+      scheme: slate
+      toggle:
+        icon: material/lightbulb-outline
+        name: Switch to dark mode
+  features:
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+
+plugins:
+  - search
+  - mkdocstrings
+
+repo_name: sopherapps/funml
+repo_url: https://github.com/sopherapps/funml
+
+nav:
+  - Funml: index.md
+  - reference.md
+  - change-log.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - mdx_include:
+      base_path: docs
+extra_css:
+  - css/termynal.css
+  - css/custom.css
+extra_javascript:
+  - js/termynal.js
+  - js/custom.js

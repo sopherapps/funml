@@ -4,21 +4,29 @@
 
 A collection of utilities to help write python as though it were an ML-kind of functional language like OCaml
 
-**This is still a toy I am playing with. The API is very unstable. Use at your own risk.**
+**The API is still unstable. Use at your own risk.**
 
-## Why
+---
 
-- Functional language expressiveness make writing, testing and reading code fun
+**Documentation:** [https://sopherapps.github.io/funml](https://sopherapps.github.io/funml)
 
+**Source Code:** [https://github.com/sopherapps/funml](https://github.com/sopherapps/funml)
+
+--- 
+
+Most Notable Features are:
 ## Features
 
-- [x] pattern matching
-- [x] simpler function composition with function being defined as one would define a variable
-- [x] piping 
-- [x] immutable compound and simple data types
-- [x] enums 
-- [x] records
-- [x] monads of Option, Result to express probably nothing or probably an error
+1. Immutable data structures like enums, records, lists
+2. Piping outputs of one function to another as inputs. That's how bigger functions are created from smaller ones.
+3. Pattern matching for declarative conditional control of flow instead of using 'if's
+4. Error handling using the `Result` monad, courtesy of [rust](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html).
+   Instead of using `try-except` all over the place, functions return 
+   a `Result` which has the right data when successful and an exception if unsuccessful. 
+   The result is then pattern-matched to retrieve the data or react to the exception.
+5. No `None`. Instead, we use the `Option` monad, courtesy of [rust](https://doc.rust-lang.org/book/ch06-01-defining-an-enum.html?highlight=option#the-option-enum-and-its-advantages-over-null-values).
+   When an Option has data, it is `Option.SOME`, or else it is `Option.NONE`. 
+   Pattern matching helps handle both scenarios.
 
 ## Dependencies
 
