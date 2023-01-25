@@ -76,8 +76,8 @@ jobs:
       - name: Install project
         run: poetry install --no-interaction
       - name: Deploy docs
-          run: |
-            mkdocs gh-deploy --force
+        run: |
+          mkdocs gh-deploy --force
       - name: Build
         run: |
           poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
