@@ -15,7 +15,6 @@ A collection of utilities to help write python as though it were an ML-kind of f
 --- 
 
 Most Notable Features are:
-## Features
 
 1. Immutable data structures like enums, records, lists
 2. Piping outputs of one function to another as inputs. That's how bigger functions are created from smaller ones.
@@ -38,27 +37,6 @@ Contributions are welcome. The docs have to maintained, the code has to be made 
 and there might be need for someone else to take over this repo in case I move on to other things. It happens!
 
 Please look at the [CONTRIBUTIONS GUIDELINES](./CONTRIBUTING.md)
-
-### How to Test
-
-- Make sure you have [poetry](https://python-poetry.org/) installed.
-- Clone the repo and enter its root folder
-
-```shell
-git clone https://github.com/sopherapps/funml.git && cd funml
-```
-
-- Install the dependencies
-
-```shell
-poetry install
-```
-
-- Run the tests command
-
-```shell
-pytest
-```
 
 ## Benchmarks
 

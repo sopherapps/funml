@@ -62,35 +62,32 @@ By contributing, you agree that your contributions will be licensed under its MI
 
 ## How to test
 
+### How to Test
+
+- Make sure you have [poetry](https://python-poetry.org/) installed.
 - Clone the repo and enter its root folder
 
-  ```bash
-  git clone https://github.com/sopherapps/funml.git && cd funml
-  ```
-
-- Create a virtual environment and activate it
-
-  ```bash
-  virtualenv -p /usr/bin/python3.7 env && source env/bin/activate
-  ```
+```shell
+git clone https://github.com/sopherapps/funml.git && cd funml
+```
 
 - Install the dependencies
 
-  ```bash
-  pip install -r requirements.txt
-  ```
+```shell
+poetry install
+```
 
 - Run the pre-commit installation
 
-  ```bash
-  pre-commit install
-  ```
+```shell
+pre-commit install
+```
 
 - Run the tests command
 
-  ```bash
-  pytest
-  ```
+```shell
+pytest
+```
 
 ## References
 
