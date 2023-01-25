@@ -136,7 +136,7 @@ def main():
         date(1228, 8, 18),
     ]
 
-    nums = l(12, 3, 45, 7, 80, 6, 3)
+    nums = l(12, 3, 45, 7, 8, 6, 3)
 
     dates_as_enums = l(*dates).map(to_date_enum)
     print(f"\ndates as enums: {dates_as_enums}")

@@ -20,6 +20,7 @@ mkdocs = "^1.4.2"
 mkdocstrings = "^0.20.0"
 mkdocs-material = "^9.0.6"
 mdx-include = "^1.4.2"
+mkdocstrings-python = "^0.8.3"
 
 [build-system]
 requires = ["poetry-core"]

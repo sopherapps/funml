@@ -4,7 +4,7 @@ A collection of utilities to help write python as though it were an ML-kind of f
 
 ## What is Functional Programming
 
-### All About Pure Functions
+### 1. All About Pure Functions
 
 Pure functions are those with no side effects i.e. the output of the function is a function of the inputs only.
 Unpredictable things such as accessing the file system, the network, etc. or mutating the inputs are strictly avoided.
@@ -19,7 +19,7 @@ they have side effect.
 For instance [Ocaml](https://ocaml.org/docs/first-hour#imperative-ocaml) supports some imperative language constructs
 specifically to handle this kind of real-life imperative operations.
 
-### Programs Compose Functions From Other Functions
+### 2. Programs Compose Functions From Other Functions
 
 Programs are generated from composing multiple functions together.
   
@@ -28,13 +28,14 @@ For instance:
 ```python
 add = lambda x, y: x+y 
 add70 = lambda x: add(x, 70)
-unoptimized_factorial = lambda x: 1 if x <= 0 else x * unoptimized_factorial(x-1)
+
+basic_factorial = lambda x: 1 if x <= 0 else x * basic_factorial(x-1)
 # tail recursive -- easier for compiler to optimise
-factorial_with_accumulator = lambda x, accum: accum if x == 0 else factorial_with_accumulator(x-1, x*accum)
-factorial = lambda x: factorial_with_accumulator(x, 1)
+accum_factorial = lambda x, ac: ac if x <= 0 else accum_factorial(x-1, x*ac)
+factorial = lambda x: accum_factorial(x, 1)
 ```
 
-### Data is Immutable
+### 3. Data is Immutable
 
 In order to ensure functions do not mutate their inputs, the data used once initialized cannot be changed.
 
@@ -102,7 +103,7 @@ months of dates as str:
 
 cube of 5: 125
 factorial for 12: 479001600
-factorial for 80: 71569457046263802294811533723186532165584657342365752577109445058227039255480148842668944867280814080000000000000000000
+factorial for 8: 40320
 factorial for 6: 720
 blue: {'r': 0, 'g': 0, 'b': 255, 'a': 1}
 
