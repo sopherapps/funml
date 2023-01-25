@@ -29,6 +29,7 @@ def record(annotations: Dict[str, Any]):
             {"__annotations__": annotations, "__slots__": tuple(annotations.keys())},
         ),
         init=False,
+        repr=False,
     )
 
 
@@ -70,3 +71,6 @@ class Record(types.MLType):
         return self._is_like, types.Expression(
             types.Operation(func=lambda *args: do(*args))
         )
+
+    def __str__(self):
+        return f"{self.__attrs}"
