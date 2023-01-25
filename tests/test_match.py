@@ -1,7 +1,7 @@
 from functools import reduce
 from typing import Any
 
-from funml import Option, fn, match, record, l
+from funml import Option, match, record, l
 
 
 def test_match_enums():
@@ -17,10 +17,10 @@ def test_match_enums():
     for arg, expected in test_data:
         value = (
             match(arg)
-            .case(Option.SOME(int), do=fn(lambda v: v + 6))
-            .case(Option.SOME(float), do=fn(lambda v: v + 90))
-            .case(Option.NONE, do=fn(lambda: "Come on man!"))
-            .case(Option.SOME(Any), do=fn(lambda v: "Unaccounted for"))
+            .case(Option.SOME(int), do=lambda v: v + 6)
+            .case(Option.SOME(float), do=lambda v: v + 90)
+            .case(Option.NONE, do=lambda: "Come on man!")
+            .case(Option.SOME(Any), do=lambda v: "Unaccounted for")
         )
 
         assert value() == expected
@@ -42,10 +42,10 @@ def test_match_records():
     for arg, expected in test_data:
         value = (
             match(arg)
-            .case(Color(a=0), do=fn(lambda v: f"r:{v.r}g:{v.g}b:{v.b}a:{v.a}"))
-            .case(Color(), do=fn(lambda: "Not matched"))
-            .case(User(last="Doe"), do=fn(lambda v: f"{v.first} {v.age}"))
-            .case(User(), do=fn(lambda v: "Not matched"))
+            .case(Color(a=0), do=lambda v: f"r:{v.r}g:{v.g}b:{v.b}a:{v.a}")
+            .case(Color(), do=lambda: "Not matched")
+            .case(User(last="Doe"), do=lambda v: f"{v.first} {v.age}")
+            .case(User(), do=lambda v: "Not matched")
         )
 
         assert value() == expected
@@ -68,15 +68,13 @@ def test_match_lists():
             match(arg)
             .case(
                 l(2, ..., 36),
-                do=fn(lambda rest: f"{reduce(lambda a, b: a+b, rest, 0)}"),
+                do=lambda rest: f"{reduce(lambda a, b: a+b, rest, 0)}",
             )
-            .case(
-                l(2, 3, ...), do=fn(lambda rest: f"{reduce(lambda a, b: a+b, rest, 0)}")
-            )
-            .case(l("foo", 6.0), do=fn(lambda: "one foo"))
-            .case(l("foo", 6.0, ...), do=fn(lambda: "bar"))
-            .case(l(...), do=fn(lambda rest: ", ".join(rest.map(lambda x: f"{x}"))))
-            .case(l(), do=fn(lambda: "Empty"))
+            .case(l(2, 3, ...), do=lambda rest: f"{reduce(lambda a, b: a+b, rest, 0)}")
+            .case(l("foo", 6.0), do=lambda: "one foo")
+            .case(l("foo", 6.0, ...), do=lambda: "bar")
+            .case(l(...), do=lambda rest: ", ".join(rest.map(lambda x: f"{x}")))
+            .case(l(), do=lambda: "Empty")
         )
 
         assert value() == expected

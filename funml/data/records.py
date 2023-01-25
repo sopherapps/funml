@@ -13,7 +13,7 @@ And utilizing the record:
 >> green = Color(r=0, g=255, b=0, a=1)
 """
 from dataclasses import dataclass
-from typing import Dict, Any
+from typing import Dict, Any, Callable
 
 from funml import utils, types
 
@@ -66,8 +66,8 @@ class Record(types.MLType):
 
         return True
 
-    def generate_case(self, expn: types.Expression):
+    def generate_case(self, do: types.Operation):
         """Generates a case statement for pattern matching"""
         return self._is_like, types.Expression(
-            types.Operation(func=lambda *args: expn(*args))
+            types.Operation(func=lambda *args: do(*args))
         )

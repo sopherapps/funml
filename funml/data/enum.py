@@ -15,7 +15,7 @@ Usage
 >> g = Color.GREEN(6, "string")
 >> b = Color.BLUE({'h': 'when', 's': 'how'})
 """
-from typing import Type, Union, Tuple, Dict, Optional, Any
+from typing import Type, Union, Tuple, Dict, Optional, Any, Callable
 
 from funml import utils, types
 
@@ -91,11 +91,11 @@ class Enum(types.MLType):
     def name(self):
         return self._name
 
-    def generate_case(self, expn: types.Expression):
+    def generate_case(self, do: types.Operation):
         """Generates a case statement for pattern matching"""
-        op = lambda *args: expn(*args)
+        op = lambda *args: do(*args)
         if self._value is not None:
-            op = lambda arg: expn(_get_enum_captured_value(arg))
+            op = lambda arg: do(_get_enum_captured_value(arg))
 
         return self._is_like, types.Expression(types.Operation(func=op))
 

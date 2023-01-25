@@ -68,14 +68,14 @@ class IList(types.MLType):
         """Returns only items that return true when f is called on them"""
         return IList(*filter(func, self))
 
-    def generate_case(self, expn: types.Expression):
+    def generate_case(self, do: types.Operation):
         """Generates a case statement for pattern matching"""
         start = 0 if self.__capture_start is None else self.__capture_start
         tail_len = self.__capture_tail_len
 
         def op(arg):
             arg_slice = arg[start : (len(arg) - tail_len)]
-            return expn(arg_slice)
+            return do(arg_slice)
 
         return self._is_like, types.Expression(types.Operation(func=op))
 

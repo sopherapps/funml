@@ -53,7 +53,7 @@ class Context(dict):
 class MLType:
     """The base type for all ML-enabled types like records, enums etc."""
 
-    def generate_case(self, expn: "Expression"):
+    def generate_case(self, do: "Operation"):
         """Generates a case statement for pattern matching"""
         raise NotImplemented("generate case not implemented")
 
@@ -101,9 +101,9 @@ class MatchExpression(Expression):
         self._matches: List[Tuple[Callable, Expression]] = []
         self.__arg = arg
 
-    def case(self, obj: MLType, do: Expression):
+    def case(self, obj: MLType, do: Callable):
         """adds a case to a match statement"""
-        check, expn = obj.generate_case(do)
+        check, expn = obj.generate_case(Operation(func=do))
         self.__add_match(check=check, expn=expn)
         return self
 
@@ -159,7 +159,8 @@ def _to_expn(v: Union["Expression", "Assignment", Callable, Any]) -> "Expression
     if isinstance(v, Expression):
         return v
     elif isinstance(v, Assignment):
-        return Expression(Operation(lambda: Context(**dict(v))))
+        # update the context
+        return Expression(Operation(lambda **kwargs: Context(**kwargs, **dict(v))))
     elif isinstance(v, Callable):
         return Expression(Operation(v))
     # return a noop expression
@@ -173,5 +174,6 @@ def _append_expn(
     """Returns a new combined Expression where the current expression runs before the passed expression"""
     other = _to_expn(other)
     first = _to_expn(first)
+
     other.set_last_computed_val(first())
     return other

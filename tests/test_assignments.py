@@ -1,6 +1,6 @@
 import pytest
 
-from funml import fn, let
+from funml import let, val
 
 
 def test_let_sets_internal_value():
@@ -18,10 +18,13 @@ def test_let_sets_internal_value():
 
 def test_let_can_be_piped():
     """let() can be piped"""
-
     v = let(int, x=9) >> (lambda x: x + 10) >> (lambda y: y * 20) >> str
-
     assert v() == "380"
+
+    # order of the let statements doesn't matter as long as they come before they
+    # are used
+    v = let(int, power=3) >> let(int, num=9) >> (lambda num, power: num**power)
+    assert v() == 729
 
 
 def test_let_sets_value_in_context():
@@ -38,7 +41,7 @@ def test_let_sets_value_in_context():
     ]
 
     for (assign, expected) in test_data:
-        expn = fn(assign, get_context)
+        expn = assign >> get_context
         assert expn() == expected
 
 
@@ -55,3 +58,19 @@ def test_let_checks_types_when_initializing():
     for (t, v) in test_data:
         with pytest.raises(TypeError):
             _ = let(t, a=v)
+
+
+def test_val():
+    """val just creates an unnamed variable or a literal"""
+    test_data = ["foo", True, 90, 909.0]
+
+    for v in test_data:
+        assert val(v)() == v
+
+
+def test_val_piping():
+    """val literals can be piped to other expressions"""
+
+    v = val(900) >> (lambda x: x + 10) >> (lambda y: y * 20) >> str
+
+    assert v() == "18200"
