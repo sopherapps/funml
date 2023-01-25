@@ -134,3 +134,32 @@ def test_create_reusable_match():
 
     for arg, expected in test_data:
         assert type_match(arg) == expected
+
+
+def test_match_piping():
+    """match expressions can be piped to more expressions or matches"""
+    test_data = [
+        (l(2, 3, 56, 34), "900"),
+        (l(2, 3, 56, 36), "str: 59"),
+        (l("foo", 6.0, 89), "str: bar"),
+    ]
+
+    element_sum = lambda arr: reduce(lambda a, b: a + b, arr, 0)
+
+    for arg, expected in test_data:
+        value = (
+            (
+                match(arg)
+                .case(l(2, ..., 36), do=lambda rest: f"{element_sum(rest)}")
+                .case(l(2, 3, ...), do=element_sum)
+                .case(l("foo", 6.0, ...), do=lambda: "bar")
+            )
+            >> (
+                match()
+                .case(int, do=lambda v: v * 10)
+                .case(str, do=lambda v: f"str: {v}")
+            )
+            >> str
+        )
+
+        assert value() == expected

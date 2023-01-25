@@ -130,6 +130,10 @@ class MatchExpression(Expression):
         if arg is None:
             arg = self.__arg
 
+        last_computed_val = self._context.last_computed_val
+        if last_computed_val is not None:
+            arg = last_computed_val
+
         for check, expn in self._matches:
             if check(arg):
                 return expn(arg)
@@ -182,5 +186,6 @@ def _append_expn(
     other = _to_expn(other)
     first = _to_expn(first)
 
-    other.set_last_computed_val(first())
+    computed_val = first()
+    other.set_last_computed_val(computed_val)
     return other
