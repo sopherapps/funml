@@ -3,7 +3,7 @@ import datetime
 import string
 import typing
 import random
-from typing import Any, Type
+from typing import Any
 
 
 def is_type(value: Any, cls: Any) -> bool:
