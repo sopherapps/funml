@@ -15,5 +15,5 @@ def let(t: Type, **kwargs) -> Assignment:
 
 
 def val(v: Any):
-    """val meaning value. Converts a generic value into a functional expression"""
+    """Converts a generic value or lambda expression into a functional expression"""
     return _to_expn(v)

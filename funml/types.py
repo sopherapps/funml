@@ -40,15 +40,6 @@ class Context(dict):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.__last_computed_val: Any = None
-
-    def set_last_computed_val(self, val: Any):
-        self.__last_computed_val = val
-
-    @property
-    def last_computed_val(self) -> Any:
-        """The last computed value in the chain"""
-        return self.__last_computed_val
 
 
 class MLType:
@@ -63,20 +54,21 @@ class Expression:
     """Expressions which compute themselves and return an Assignment"""
 
     def __init__(self, f: Optional["Operation"] = None):
-        self.__f = f if f is not None else lambda x: x
+        self._f = f if f is not None else lambda x: x
         self._context: "Context" = Context()
+        self._queue: List[Expression] = []
 
     def __call__(self, *args, **kwargs):
         """computes self and returns the value"""
-        last_computed_val = self._context.last_computed_val
+        prev_output = self._run_prev_expns(*args, **kwargs)
+        self.clear_prev_expns()
 
-        if isinstance(last_computed_val, Context):
-            self._context.update(last_computed_val)
-            self._context.set_last_computed_val(None)
-        elif last_computed_val is not None:
-            return self.__f(last_computed_val, *args, **self._context, **kwargs)
+        if isinstance(prev_output, Context):
+            self._context.update(prev_output)
+        elif prev_output is not None:
+            return self._f(prev_output, *args, **self._context, **kwargs)
 
-        return self.__f(*args, **self._context, **kwargs)
+        return self._f(*args, **self._context, **kwargs)
 
     def __rshift__(self, nxt: Union["Expression", "Assignment", Callable]):
         """This makes piping using the '>>' symbol possible
@@ -86,12 +78,27 @@ class Expression:
         """
         return _append_expn(self, nxt)
 
-    def set_last_computed_val(self, val):
-        """Sets the last computed value for the context of this expression
+    def _run_prev_expns(self, *args, **kwargs) -> Union["Context", Any]:
+        """Runs all the previous expressions, returning the final output"""
+        output = None
 
-        Useful when passing the value through a series of expressions, from left to right
-        """
-        self._context.set_last_computed_val(val=val)
+        for expn in self._queue:
+            if output is None:
+                output = expn(*args, **expn._context, **kwargs)
+            elif isinstance(output, Context):
+                output = expn(*args, **expn._context, **output, **kwargs)
+            else:
+                output = expn(output, *args, **expn._context, **kwargs)
+
+        return output
+
+    def append_prev_expns(self, *expns: "Expression"):
+        """Appends expressions that should be computed before this one"""
+        self._queue += expns
+
+    def clear_prev_expns(self):
+        """Clears all previous expressions in queue"""
+        self._queue.clear()
 
 
 class MatchExpression(Expression):
@@ -130,9 +137,11 @@ class MatchExpression(Expression):
         if arg is None:
             arg = self.__arg
 
-        last_computed_val = self._context.last_computed_val
-        if last_computed_val is not None:
-            arg = last_computed_val
+        args = [] if arg is None else [arg]
+        prev_output = self._run_prev_expns(*args)
+        self.clear_prev_expns()
+        if prev_output is not None:
+            arg = prev_output
 
         for check, expn in self._matches:
             if check(arg):
@@ -186,6 +195,6 @@ def _append_expn(
     other = _to_expn(other)
     first = _to_expn(first)
 
-    computed_val = first()
-    other.set_last_computed_val(computed_val)
+    other.append_prev_expns(*first._queue, first)
+    first.clear_prev_expns()
     return other

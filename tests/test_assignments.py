@@ -60,12 +60,26 @@ def test_let_checks_types_when_initializing():
             _ = let(t, a=v)
 
 
-def test_val():
+def test_val_literals():
     """val just creates an unnamed variable or a literal"""
     test_data = ["foo", True, 90, 909.0]
 
     for v in test_data:
         assert val(v)() == v
+
+
+def test_val_expressions():
+    """val converts a function into an expression"""
+    fn = val(lambda v: v * 2)
+    test_data = [
+        (2, 4),
+        (20, 40),
+        (45, 90),
+        (-2, -4),
+    ]
+
+    for v, expected in test_data:
+        assert fn(v) == expected
 
 
 def test_val_piping():
