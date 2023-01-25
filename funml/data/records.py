@@ -13,7 +13,7 @@ And utilizing the record:
 >> green = Color(r=0, g=255, b=0, a=1)
 """
 from dataclasses import dataclass
-from typing import Dict, Any, Callable
+from typing import Dict, Any
 
 from funml import utils, types
 
@@ -28,7 +28,6 @@ def record(annotations: Dict[str, Any]):
             (Record,),
             {"__annotations__": annotations, "__slots__": tuple(annotations.keys())},
         ),
-        # order=False,
         init=False,
     )
 

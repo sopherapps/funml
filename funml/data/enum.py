@@ -15,7 +15,7 @@ Usage
 >> g = Color.GREEN(6, "string")
 >> b = Color.BLUE({'h': 'when', 's': 'how'})
 """
-from typing import Type, Union, Tuple, Dict, Optional, Any, Callable
+from typing import Type, Union, Tuple, Dict, Optional, Any
 
 from funml import utils, types
 
@@ -99,13 +99,6 @@ class Enum(types.MLType):
 
         return self._is_like, types.Expression(types.Operation(func=op))
 
-    def __eq__(self, other: "Enum"):
-        return (
-            self.__class__ == other.__class__
-            and self._name == other._name
-            and self._value == other._value
-        )
-
     def _is_like(self, other):
         """Checks that a value has the given pattern"""
         if not isinstance(other, Enum):
@@ -116,6 +109,16 @@ class Enum(types.MLType):
             and self._name == other._name
             and (self._value == other._value or _is_valid(other._value, self._value))
         )
+
+    def __eq__(self, other: "Enum"):
+        return (
+            self.__class__ == other.__class__
+            and self._name == other._name
+            and self._value == other._value
+        )
+
+    def __str__(self):
+        return f"<{self.name}: {self.value}>"
 
 
 def _get_enum_captured_value(instance: Enum):

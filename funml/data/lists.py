@@ -187,6 +187,9 @@ class IList(types.MLType):
     def __eq__(self, other):
         return self._self_list == other._self_list
 
+    def __str__(self):
+        return f"[{', '.join(self.map(str))}]"
+
 
 class _Node:
     __slots__ = ["_data", "_next"]
