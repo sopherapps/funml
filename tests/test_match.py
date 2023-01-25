@@ -1,7 +1,40 @@
+import dataclasses
 from functools import reduce
 from typing import Any
 
 from funml import Option, match, record, l
+
+
+def test_match_any_type():
+    """match can match built in types or other custom types"""
+
+    @dataclasses.dataclass
+    class Dummy:
+        age: int
+        name: str
+
+        def __str__(self):
+            return f"{self.__dict__}"
+
+    test_data = [
+        ("hey", "str"),
+        (900, 9000),
+        (900.9, "float"),
+        (Dummy(age=90, name="Roe"), "{'age': 90, 'name': 'Roe'}"),
+        ({"dict": "yeah"}, "Any"),
+    ]
+
+    for arg, expected in test_data:
+        value = (
+            match(arg)
+            .case(int, do=lambda v: v * 10)
+            .case(str, do=lambda: "str")
+            .case(float, do=lambda: "float")
+            .case(Dummy, do=lambda v: f"{v}")
+            .case(..., do=lambda: "Any")
+        )
+
+        assert value() == expected
 
 
 def test_match_enums():
@@ -62,16 +95,14 @@ def test_match_lists():
         (l(True, "foo", 6.0, 7), "True, foo, 6.0, 7"),
         (l(), "Empty"),
     ]
+    element_sum = lambda arr: reduce(lambda a, b: a + b, arr, 0)
 
     # '...' is used to capture values to be used in the matching expression
     for arg, expected in test_data:
         value = (
             match(arg)
-            .case(
-                l(2, ..., 36),
-                do=lambda rest: f"{reduce(lambda a, b: a+b, rest, 0)}",
-            )
-            .case(l(2, 3, ...), do=lambda rest: f"{reduce(lambda a, b: a+b, rest, 0)}")
+            .case(l(2, ..., 36), do=lambda rest: f"{element_sum(rest)}")
+            .case(l(2, 3, ...), do=lambda rest: f"{element_sum(rest)}")
             .case(l("foo", 6.0), do=lambda: "one foo")
             .case(l("foo", 6.0, ...), do=lambda: "bar")
             .case(l(str, 6.0, ...), do=lambda: "woo-hoo")

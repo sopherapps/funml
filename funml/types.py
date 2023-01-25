@@ -3,6 +3,7 @@ from inspect import signature
 from typing import Any, Type, Union, Callable, Optional, List, Tuple
 
 from funml import errors
+from funml.utils import is_equal_or_of_type
 
 
 class Assignment:
@@ -96,14 +97,19 @@ class Expression:
 class MatchExpression(Expression):
     """Expression used when matching"""
 
-    def __init__(self, arg: Any):
+    def __init__(self, arg: Optional[Any] = None):
         super().__init__(f=Operation(self))
         self._matches: List[Tuple[Callable, Expression]] = []
         self.__arg = arg
 
-    def case(self, obj: MLType, do: Callable):
+    def case(self, obj: Union[MLType, Any], do: Callable):
         """adds a case to a match statement"""
-        check, expn = obj.generate_case(Operation(func=do))
+        if isinstance(obj, MLType):
+            check, expn = obj.generate_case(Operation(func=do))
+        else:
+            check = lambda arg: is_equal_or_of_type(arg, obj)
+            expn = Expression(Operation(func=do))
+
         self.__add_match(check=check, expn=expn)
         return self
 
@@ -119,9 +125,10 @@ class MatchExpression(Expression):
 
         self._matches.append((check, expn))
 
-    def __call__(self):
+    def __call__(self, arg: Optional[Any] = None):
         """This class transforms into a conditional callable"""
-        arg = self.__arg
+        if arg is None:
+            arg = self.__arg
 
         for check, expn in self._matches:
             if check(arg):

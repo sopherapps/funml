@@ -1,11 +1,11 @@
 """Pattern matching
 """
-from typing import Any
+from typing import Any, Optional
 
 from funml.types import MatchExpression
 
 
-def match(arg: Any) -> "MatchExpression":
+def match(arg: Optional[Any] = None) -> "MatchExpression":
     """pattern matching using the match syntax
 
     Usage
@@ -34,4 +34,4 @@ def match(arg: Any) -> "MatchExpression":
             .case(l(_, 5, rest), do= fn(5)) \
             .case(l(8, 5, rest), do= fn(rest))
     """
-    return MatchExpression(arg)
+    return MatchExpression(arg=arg)

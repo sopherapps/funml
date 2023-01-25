@@ -35,3 +35,23 @@ def generate_random_string() -> str:
     timestamp = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%S")
     random_string = "".join(random.choices(string.ascii_letters, k=8))
     return f"{random_string}{timestamp}"
+
+
+def is_equal_or_of_type(val: Any, type_or_val: Any) -> bool:
+    """Checks if the given value is equal or of the type given
+
+    Ellipsis (...) signifies any value
+    """
+    if type_or_val is ...:
+        return True
+
+    if val == type_or_val:
+        return True
+
+    try:
+        if isinstance(val, type_or_val):
+            return True
+    except TypeError:
+        return False
+
+    return False

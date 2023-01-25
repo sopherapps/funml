@@ -32,6 +32,7 @@ Usage
 from typing import Any, Optional, Callable, List, Tuple
 
 from funml import types
+from funml.utils import is_equal_or_of_type
 
 
 def l(*args: Any) -> "IList":
@@ -237,15 +238,7 @@ def _lists_match(schema: List[Any], actual: List[Any]):
         return False
 
     for type_or_val, val in zip(schema, actual):
-        if val == type_or_val:
-            continue
-
-        try:
-            if isinstance(val, type_or_val):
-                continue
-        except TypeError:
+        if not is_equal_or_of_type(val, type_or_val=type_or_val):
             return False
-
-        return False
 
     return True
