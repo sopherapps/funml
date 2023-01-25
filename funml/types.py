@@ -178,7 +178,9 @@ def _to_expn(v: Union["Expression", "Assignment", Callable, Any]) -> "Expression
         return v
     elif isinstance(v, Assignment):
         # update the context
-        return Expression(Operation(lambda **kwargs: Context(**kwargs, **dict(v))))
+        return Expression(
+            Operation(lambda *args, **kwargs: Context(**kwargs, **dict(v)))
+        )
     elif isinstance(v, Callable):
         return Expression(Operation(v))
     # return a noop expression
