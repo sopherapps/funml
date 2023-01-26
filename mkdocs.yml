@@ -33,7 +33,7 @@ nav:
       - tutorial/intro.md
       - tutorial/folder-structure.md
       - tutorial/fastapi-app.md
-      - tutorial/models.md
+      - tutorial/data-transfer-objects.md
       - tutorial/repository.md
   - reference.md
   - change-log.md

@@ -60,13 +60,15 @@ $ poetry shell
 A `funml-scdb-tutorial` directory is created.
 
 ```shell
-funml-scdb-tutorial
-├── pyproject.toml
-├── README.md
-├── funml_scdb_tutorial
-│   └── __init__.py
-└── tests
-    └── __init__.py
+
+    funml-scdb-tutorial
+    ├── pyproject.toml
+    ├── README.md
+    ├── funml_scdb_tutorial
+    │   └── __init__.py
+    └── tests
+        └── __init__.py
+    
 ```
 
 ## Install the Python Dependencies
