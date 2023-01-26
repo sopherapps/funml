@@ -29,6 +29,12 @@ repo_url: https://github.com/sopherapps/funml
 
 nav:
   - Funml: index.md
+  - Tutorial:
+      - tutorial/intro.md
+      - tutorial/folder-structure.md
+      - tutorial/fastapi-app.md
+      - tutorial/models.md
+      - tutorial/repository.md
   - reference.md
   - change-log.md
 
