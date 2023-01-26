@@ -70,12 +70,12 @@ def test_val_literals():
 
 def test_val_expressions():
     """val converts a function into an expression"""
-    fn = val(lambda v: v * 2)
+    fn = val(min) >> str
     test_data = [
-        (2, 4),
-        (20, 40),
-        (45, 90),
-        (-2, -4),
+        ([2, 6, 8], "2"),
+        ([2, -12, 8], "-12"),
+        ([20, 6, 18], "6"),
+        ([0.2, 6.0, 0.08], "0.08"),
     ]
 
     for v, expected in test_data:

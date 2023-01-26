@@ -1,14 +1,14 @@
 from datetime import date
 from typing import Any
 
-from funml import let, enum, record, Option, Result, match, l, val
+import funml as ml
 
 
 def main():
     """Main program"""
     # define some data types
     Date = (
-        enum("Date")
+        ml.enum("Date")
         .opt("January", shape=date)
         .opt("February", shape=date)
         .opt("March", shape=date)
@@ -22,7 +22,7 @@ def main():
         .opt("November", shape=date)
         .opt("December", shape=date)
     )
-    Color = record({"r": int, "g": int, "b": int, "a": int})
+    Color = ml.record({"r": int, "g": int, "b": int, "a": int})
 
     # defining a number of functions
     is_even = lambda v: v % 2 == 0
@@ -36,27 +36,27 @@ def main():
     )
     get_month = lambda value: value.month
 
-    # Result
+    # ml.Result
     get_type_str = lambda v: f"{type(v)}"
-    make_type_err = lambda *args: Result.ERR(
-        TypeError(f"expected numbers, got {', '.join(l(*args).map(get_type_str))}")
+    make_type_err = lambda *args: ml.Result.ERR(
+        TypeError(f"expected numbers, got {', '.join(ml.l(*args).map(get_type_str))}")
     )
     try_multiply = (
         lambda x, y: make_type_err(x, y)
-        if any(l(x, y).map(is_not_number))
-        else Result.OK(multiply(x, y))
+        if any(ml.l(x, y).map(is_not_number))
+        else ml.Result.OK(multiply(x, y))
     )
 
     # Option
     result_to_option = (
-        match()
-        .case(Result.ERR(Exception), do=lambda: Option.NONE)
-        .case(Result.OK(Any), do=lambda v: Option.SOME(v))
+        ml.match()
+        .case(ml.Result.ERR(Exception), do=lambda: ml.Option.NONE)
+        .case(ml.Result.OK(Any), do=lambda v: ml.Option.SOME(v))
     )
 
     # some pattern matching
     to_date_enum = lambda date_value: (
-        match(date_value.month)
+        ml.match(date_value.month)
         .case(
             1,
             do=lambda: Date.January(date_value),
@@ -108,10 +108,10 @@ def main():
     )()
 
     # combine a number of functions into bigger ones
-    cube = let(int, power=3) >> superscript
-    factorial = let(int, accum=1) >> accumulated_factorial
-    get_month_str = val(get_month) >> (
-        match()
+    cube = ml.let(int, power=3) >> superscript
+    factorial = ml.let(int, accum=1) >> accumulated_factorial
+    get_month_str = ml.val(get_month) >> (
+        ml.match()
         .case(1, do=lambda: "JAN")
         .case(2, do=lambda: "FEB")
         .case(3, do=lambda: "MAR")
@@ -136,14 +136,14 @@ def main():
         date(1228, 8, 18),
     ]
 
-    nums = l(12, 3, 45, 7, 8, 6, 3)
+    nums = ml.l(12, 3, 45, 7, 8, 6, 3)
 
-    dates_as_enums = l(*dates).map(to_date_enum)
+    dates_as_enums = ml.l(*dates).map(to_date_enum)
     print(f"\ndates as enums: {dates_as_enums}")
 
     print(f"\nfirst date enum: {dates_as_enums[0]}")
 
-    months_as_str = l(*dates).map(get_month_str)
+    months_as_str = ml.l(*dates).map(get_month_str)
     print(f"\nmonths of dates as str:\n{months_as_str}")
 
     print(f"\ncube of 5: {cube(5)}")
@@ -156,7 +156,7 @@ def main():
     blue = Color(r=0, g=0, b=255, a=1)
     print(f"blue: {blue}")
 
-    data = l((2, 3), ("hey", 7), (5, "y"), (8.1, 6)).map(lambda x: try_multiply(*x))
+    data = ml.l((2, 3), ("hey", 7), (5, "y"), (8.1, 6)).map(lambda x: try_multiply(*x))
     print(f"\nafter multiplication:\n{data}")
 
     data_as_options = data.map(result_to_option)

@@ -1,4 +1,4 @@
-site_name: Funml
+site_name: FunML
 site_description: a collection of utilities to help write python as though it were an ML-kind of functional language like OCaml
 site_url: https://sopherapps.github.io/funml/
 

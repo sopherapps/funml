@@ -7,7 +7,20 @@ from funml.utils import is_equal_or_of_type
 
 
 class Assignment:
-    """Class for making assignments"""
+    """A variable assignment
+
+    Assigns a given value a variable name and type. It will check that
+    the data type passed is as expected. It can thus be used to
+    validate third party data before passing it through the ml-program.
+
+    Args:
+        var: the variable name
+        t: the variable type
+        val: the value stored in the variable
+
+    Raises:
+        TypeError: `val` passed is not of type `t`
+    """
 
     def __init__(self, var: Any, t: Type = type(None), val: Any = None):
         self.__var = var
@@ -36,49 +49,102 @@ class Assignment:
 
 
 class Context(dict):
-    """The _context map containing variables in scope"""
+    """The context map containing variables in scope."""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    pass
 
 
 class MLType:
-    """The base type for all ML-enabled types like records, enums etc."""
+    """An ML-enabled type, that can easily be used in pattern matching, piping etc.
 
-    def generate_case(self, do: "Operation"):
-        """Generates a case statement for pattern matching"""
-        raise NotImplemented("generate case not implemented")
+    Methods common to ML-enabled types are defined in this class.
+    """
+
+    def generate_case(self, do: "Operation") -> Tuple[Callable, "Expression"]:
+        """Generates a case statement for pattern matching.
+
+        Args:
+            do: The operation to do if the arg matches on this type
+
+        Returns:
+            A tuple (checker, expn) where checker is a function that checks if argument matches this case, and expn
+            is the expression that is called when the case is matched.
+        """
+        raise NotImplemented("generate_case not implemented")
+
+    def _is_like(self, other: Any) -> bool:
+        """Checks whether a value has the given pattern.
+
+        Args:
+            other: the value being checked against the pattern represented by type.
+
+        Returns:
+            A boolean showing true if `other` matches the pattern represented by current type.
+        """
+        raise NotImplemented("_is_like not implemented")
 
 
 class Expression:
-    """Expressions which compute themselves and return an Assignment"""
+    """Logic that returns a value when applied.
+
+    This is the basic building block of all functions and thus
+    almost everything in FunML is converted into an expression at one point or another.
+
+    Args:
+        f: the operation or logic to run as part of this expression
+    """
 
     def __init__(self, f: Optional["Operation"] = None):
         self._f = f if f is not None else lambda x: x
         self._context: "Context" = Context()
         self._queue: List[Expression] = []
 
-    def __call__(self, *args, **kwargs):
-        """computes self and returns the value"""
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        """Computes the logic within and returns the value.
+
+        Args:
+            args: any arguments passed.
+            kwargs: any key-word arguments passed
+
+        Returns:
+            the computed output of this expression.
+        """
         prev_output = self._run_prev_expns(*args, **kwargs)
 
         if isinstance(prev_output, Context):
             self._context.update(prev_output)
         elif prev_output is not None:
-            return self._f(prev_output, *args, **self._context, **kwargs)
+            # make sure piped expressions only consume previous outputs args, and kwargs
+            return self._f(prev_output, **self._context, **kwargs)
 
         return self._f(*args, **self._context, **kwargs)
 
     def __rshift__(self, nxt: Union["Expression", "Assignment", Callable]):
-        """This makes piping using the '>>' symbol possible
+        """This makes piping using the '>>' symbol possible.
 
-        Combines with the given expression to produce a new expression
-        where data flows from current to nxt
+        Combines with the given `nxt` expression to produce a new expression
+        where data flows from current to nxt.
+
+        Args:
+            nxt: the next expression, assignment or callable to apply after the current one.
         """
         return _append_expn(self, nxt)
 
-    def _run_prev_expns(self, *args, **kwargs) -> Union["Context", Any]:
-        """Runs all the previous expressions, returning the final output"""
+    def _run_prev_expns(self, *args: Any, **kwargs: Any) -> Union["Context", Any]:
+        """Runs all the previous expressions, returning the final output.
+
+        In order to have expressions piped, all expressions are queued in the
+        expression at the end of the pipe. This method runs all those expressions sequentially,
+        with the output of the previous expression being used as input of the current expression.
+
+        Args:
+            args: Any args passed
+            kwargs: Any key-word arguments passed.
+
+         Returns:
+             The output of the most previous expression, after running all expressions before it and piping their output
+             sequentially to the next.
+        """
         output = None
 
         for expn in self._queue:
@@ -87,40 +153,69 @@ class Expression:
             elif isinstance(output, Context):
                 output = expn(*args, **expn._context, **output, **kwargs)
             else:
-                output = expn(output, *args, **expn._context, **kwargs)
+                # make sure piped expressions only consume previous outputs args, and kwargs
+                output = expn(output, **expn._context, **kwargs)
 
         return output
 
     def append_prev_expns(self, *expns: "Expression"):
-        """Appends expressions that should be computed before this one"""
+        """Appends expressions that should be computed before this one.
+
+        Args:
+            expns: the previous expressions to add to the queue
+        """
         self._queue += expns
 
     def clear_prev_expns(self):
-        """Clears all previous expressions in queue"""
+        """Clears all previous expressions in queue."""
         self._queue.clear()
 
 
 class MatchExpression(Expression):
-    """Expression used when matching"""
+    """A special expression used when pattern matching.
+
+    Args:
+        arg: the value to be pattern matched.
+    """
 
     def __init__(self, arg: Optional[Any] = None):
         super().__init__(f=Operation(self))
         self._matches: List[Tuple[Callable, Expression]] = []
         self.__arg = arg
 
-    def case(self, obj: Union[MLType, Any], do: Callable):
-        """adds a case to a match statement"""
-        if isinstance(obj, MLType):
-            check, expn = obj.generate_case(Operation(func=do))
+    def case(self, pattern: Union[MLType, Any], do: Callable) -> "MatchExpression":
+        """Adds a case to a match statement.
+
+        This is chainable, allowing multiple cases to be added to the same
+        match expression.
+
+        Args:
+            pattern: the pattern to match against.
+            do: the logic to run if pattern is matched.
+
+        Returns:
+            The current match expressions, after adding the case.
+        """
+        if isinstance(pattern, MLType):
+            check, expn = pattern.generate_case(Operation(func=do))
         else:
-            check = lambda arg: is_equal_or_of_type(arg, obj)
+            check = lambda arg: is_equal_or_of_type(arg, pattern)
             expn = Expression(Operation(func=do))
 
         self.__add_match(check=check, expn=expn)
         return self
 
     def __add_match(self, check: Callable, expn: Expression):
-        """Adds a match to the list of matches"""
+        """Adds a match set to the list of matches.
+
+        A match set comprises a checker function and an expression.
+        The checker function checks if a given argument matches this case.
+        The expression that is called when the case is matched.
+
+        Args:
+            check: the checker function
+            expn: the expression to run if a value matches.
+        """
         if not callable(check):
             raise TypeError(f"the check is supposed to be a callable. Got {check}")
 
@@ -131,8 +226,21 @@ class MatchExpression(Expression):
 
         self._matches.append((check, expn))
 
-    def __call__(self, arg: Optional[Any] = None):
-        """This class transforms into a conditional callable"""
+    def __call__(self, arg: Optional[Any] = None) -> Any:
+        """Applies the matched case and returns the output.
+
+        The match cases are surveyed for any that matches the given argument until one that matches is found.
+        Then the expression of that case is run and its output returned.
+
+        Args:
+            arg: the potential value to match against.
+
+        Returns:
+            The output of the expression of the matched case.
+
+        Raises:
+            MatchError: no case was matched for the given argument.
+        """
         if arg is None:
             arg = self.__arg
 
@@ -149,7 +257,11 @@ class MatchExpression(Expression):
 
 
 class Operation:
-    """A computation"""
+    """A computation.
+
+    Args:
+        func: the logic to run as part of the operation.
+    """
 
     def __init__(self, func: Callable):
         sig = _get_func_signature(func)
@@ -160,7 +272,15 @@ class Operation:
             self.__f = func
 
     def __call__(self, *args: Any, **kwargs: "Context") -> Any:
-        """Handles the actual computation"""
+        """Applies the logic attached to this operation and returns output.
+
+        Args:
+            args: the args passed
+            kwargs: the context in which the operation is being run.
+
+        Returns:
+            the final output of the operation's logic code.
+        """
         return self.__f(*args, **kwargs)
 
 

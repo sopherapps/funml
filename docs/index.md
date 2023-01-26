@@ -1,4 +1,4 @@
-# funml
+# FunML
 
 A collection of utilities to help write python as though it were an ML-kind of functional language like OCaml
 

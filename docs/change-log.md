@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - immutable lists, enums, and records
 - `Option` for handling potentially-None data
 - `Result` to return from procedures that may raise an exception
+- mkdocs documentation
 
 ### Changed
 

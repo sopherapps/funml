@@ -1,9 +1,14 @@
 """Errors for this domain"""
-from typing import Optional
 
 
 class MatchError(BaseException):
-    def __init__(self, arg: Optional[str] = None):
+    """Exception returned when a match fails to find an appropriate case for argument.
+
+    Args:
+        arg: the argument whose match was not found
+    """
+
+    def __init__(self, arg: str):
         self.arg = arg
 
     def __repr__(self):

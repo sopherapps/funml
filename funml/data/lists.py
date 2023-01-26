@@ -1,46 +1,89 @@
-"""lists that support functional programming concepts easily
+"""Immutable lists for ML functionality.
 
-Usage
----
+Typical Usage:
 
-# assignment
+    ```python
+    import funml as ml
 
->> list1 = l(9, 7, 0)
 
-# prepending data (immutably) i.e. new list is got
+    # initialize
+    list1 = ml.l(9, 7, 0)
 
->> value = l(5, 6) + list1
+    # concatenate immutably
+    value = ml.l(5, 6) + list1
 
-# appending data (immutably) i.e. new list is got
+    # deleting data (immutably) i.e. new list is got
+    value = list1.filter(lambda v: v < 9)
 
->> value = list1 + l(7, 9)
+    # transforming data (immutably) i.e. new list is got
+    value = list1.map(lambda v: v + 9)
 
-# deleting data (immutably) i.e. new list is got
->> value = list1.filter(lambda v: v > 9)
+    # iterating data using head and
+    def print_head(v: ml.data.lists.IList) -> ml.data.lists.IList:
+        print(v.head)
+        return v.tail
 
-# transforming data (immutably) i.e. new list is got
->> value = list1.map(lambda v: v + 9)
-
-# iterating data using head and tail
->> loop = (fn(match(v)
-            .case(l(), do= fn())
-            .case(l(...), do= fn(
-                                 lambda rest: print(rest.head),
-                                 loop(rest.tail),
-                                 ))
+    ml_print_head = ml.val(print_head)
+    loop = (
+            ml.match()
+                .case(ml.l(), do=ml.val(None))
+                .case(ml.l(...), do=lambda v: (ml_print_head >> loop)(v))
+    )
+    ```
 """
-from typing import Any, Optional, Callable, List, Tuple
+from typing import Any, Optional, Callable, List, Tuple, Union
 
 from funml import types
 from funml.utils import is_equal_or_of_type
 
 
 def l(*args: Any) -> "IList":
-    """Creates an immutable list"""
+    """Creates an immutable list of any type of items.
+
+    Creates a list of items of any type, that cannot be changed
+    once created. It can only be used to create other lists, using methods on it like
+
+    - [`+`][funml.data.lists.IList.__add__] - to combine two separate lists into a new one containing elements of both
+    - [`map(fn)`][funml.data.lists.IList.map] - to create a new list with each element transformed according to the given function `fn`
+    - [`filter(fn)`][funml.data.lists.IList.filter] - to return a new list containing only elements that conform to the given function `fn`
+
+    Args:
+        args: the items that make up the list
+
+    Returns:
+        An immutable list, [`IList][funml.data.lists.IList], containing the items passed to it.
+
+    Example:
+        ```python
+        import funml as ml
+
+        items = ml.l(120, 13, 40, 60, "hey", "men")
+
+        nums = items.filter(lambda x: isinstance(x, (int, float)))
+        strings = items.filter(lambda x: isinstance(x, str))
+
+        doubled_nums = nums.map(lambda x: x*2)
+
+        print(nums)
+        # prints [120, 13, 40, 60]
+
+        print(strings)
+        # prints ["hey", "men"]
+
+        print(doubled_nums)
+        # prints [240, 26, 80, 120]
+        ```
+    """
     return IList(*args)
 
 
 class IList(types.MLType):
+    """An immutable list of items of any type.
+
+    Args:
+        args: the items to be included in the list.
+    """
+
     def __init__(self, *args: Any):
         self.__size: Optional[int] = None
         self.__capture_start: Optional[int] = None
@@ -54,23 +97,39 @@ class IList(types.MLType):
         self.__initialize_from_tuple(args)
 
     @property
-    def head(self):
+    def head(self) -> Any:
+        """The first item in the list."""
         return self._head.value
 
     @property
-    def tail(self):
+    def tail(self) -> "IList":
+        """A new slice of the list containing all items except the first."""
         return IList.__from_node(self._head.next)
 
-    def map(self, func: Callable):
-        """Transforms each item of the list using the given function f"""
+    def map(self, func: Callable) -> "IList":
+        """Transforms each item of the list using the given function `func`.
+
+        Args:
+            func: the function to use to transform each item
+
+        Returns:
+            A new copy of the list with each item transformed according to the `func` function.
+        """
         return IList(*[func(v) for v in self])
 
-    def filter(self, func: Callable):
-        """Returns only items that return true when f is called on them"""
+    def filter(self, func: Callable) -> "IList":
+        """Creates new list with only items that return true when `func` is called on them.
+
+        Args:
+            func: the function to use to check if item should remain or be ignored.
+
+        Returns:
+            A new list with only the items that returned true when `func` was called on them.
+        """
         return IList(*filter(func, self))
 
     def generate_case(self, do: types.Operation):
-        """Generates a case statement for pattern matching"""
+        """See Base class: [`MLType`][funml.types.MLType]"""
         start = 0 if self.__capture_start is None else self.__capture_start
         tail_len = self.__capture_tail_len
 
@@ -80,8 +139,8 @@ class IList(types.MLType):
 
         return self._is_like, types.Expression(types.Operation(func=op))
 
-    def _is_like(self, other):
-        """Checks that a value has the given pattern"""
+    def _is_like(self, other: Any) -> bool:
+        """See Base Class: [`MLType`][funml.types.MLType]"""
         if not isinstance(other, IList):
             return False
 
@@ -100,24 +159,28 @@ class IList(types.MLType):
 
     @property
     def _size(self):
+        """The number of items in the list."""
         if self.__size is None:
             self.__size = len(self._self_list)
         return self.__size
 
     @property
     def _self_list(self):
+        """A cache of the native list that corresponds to this list."""
         if self.__list is None:
             self.__list = list(self.__iter__())
         return self.__list
 
     @property
     def _pre_capture(self):
+        """A slice of the list pattern before the section to be captured when matching."""
         if self.__pre_capture is None and self.__capture_start is not None:
             self.__pre_capture = self._self_list[: self.__capture_start]
         return self.__pre_capture
 
     @property
     def _post_capture(self):
+        """A slice of the list pattern after the section to be captured when matching."""
         if self.__post_capture is None:
             self.__post_capture = self._self_list[
                 (self._size - self.__capture_tail_len) :
@@ -125,26 +188,40 @@ class IList(types.MLType):
         return self.__post_capture
 
     @classmethod
-    def __from_node(cls, head: "_Node"):
-        """Generates a slice of the old IList given one node of that list
+    def __from_node(cls, head: "_Node") -> "IList":
+        """Generates a slice of the old IList given one node of that list.
 
         In this case, the new list shares the same memory as the old list
         so don't use this in scenarios where immutable lists are needed.
+
+        Args:
+            head: the node from which the new list is to start from.
+
+        Returns:
+            A new list that shares memory with the old list. **NOTE: This is not immutable. Don't use it**.
         """
         i_list = IList()
         i_list._head = head
         return i_list
 
     def __set_size_from_args(self, args: Tuple[Any]):
-        """Computest the size of the new IList if args are passed to the init"""
+        """Updates the size of this list basing on the args passed.
+
+        Args:
+            args: the items to be put in this list.
+        """
         args_len = len(args)
         if args_len > 0:
             self.__size = args_len
 
     def __initialize_from_tuple(self, args: Tuple[Any]):
-        """
+        """Initializes the list using items passed to it as a tuple.
+
         Initializes the current IList, generating nodes corresponding to the args passed
-        and setting any capture sections if `...` is found
+        and setting any capture sections if `...` is found.
+
+        Args:
+            args: the items to include in the list
         """
         prev: Optional[_Node] = None
         for i, v in enumerate(reversed(args)):
@@ -158,9 +235,11 @@ class IList(types.MLType):
         self._head: Optional["_Node"] = prev
 
     def __len__(self):
+        """Computes the length of the list."""
         return self._size
 
     def __iter__(self):
+        """Makes the list an iterable."""
         if self._head is None:
             return
 
@@ -171,23 +250,51 @@ class IList(types.MLType):
             yield curr.value
             curr = curr.next
 
-    def __add__(self, other):
+    def __add__(self, other: Any) -> "IList":
+        """Creates a new list with the current list and the `other` list merged.
+
+        Args:
+            other: the list to be appended to current list when creating new merged list.
+
+        Returns:
+            A new list which is a combination of the current list and the `other` list.
+
+        Raises:
+            TypeError: other is not an `IList`
+        """
         if not isinstance(other, IList):
-            return TypeError(
+            raise TypeError(
                 f"add operation requires value to be of type IList, not {type(other)}"
             )
 
         return IList(*self, *other)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: Union[slice, int]) -> Union["IList", Any]:
+        """Makes this list subscriptable and sliceable.
+
+        Args:
+            item: the index or slice to return.
+
+        Returns:
+            An `IList` if `index` was a slice or an item in the list if index was an integer.
+
+        Raises:
+            IndexError: if `item` is out of range of the list.
+        """
         if isinstance(item, slice):
             return IList(*self._self_list[item])
         return self._self_list[item]
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
+        """Checks equality of the this list and `other`.
+
+        Args:
+            other: the value to compare with current list.
+        """
         return self._self_list == other._self_list
 
     def __str__(self):
+        """Generates a readable presentation of the list."""
         return f"[{', '.join(self.map(str))}]"
 
 

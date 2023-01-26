@@ -1,27 +1,104 @@
 """Enumerable user-defined data types
 
-Results in something like:
+Typical Usage:
 
-Initialization
---
->> Color = enum("Color")\
-                .opt("RED")\
-                .opt("BLUE", shape={'h': str, 's': str})\
-                .opt("GREEN", shape=(int, str)))
+    ```python
+    import funml as ml
 
-Usage
---
->> r = Color.RED
->> g = Color.GREEN(6, "string")
->> b = Color.BLUE({'h': 'when', 's': 'how'})
+
+    Color = (
+        ml.enum("Color")
+            .opt("RED")
+            .opt("BLUE", shape={'h': str, 's': str})
+            .opt("GREEN", shape=(int, str))
+    )
+
+    r = Color.RED
+    g = Color.GREEN(6, "string")
+    b = Color.BLUE({'h': 'when', 's': 'how'})
+
+    print(r)
+    # prints: <Color.RED: ('RED',)>
+
+    print(g)
+    # prints: <Color.GREEN: (6, 'string')>
+
+    print(b)
+    # prints: <Color.BLUE: ({'h': 'when', 's': 'how'},)>
+    ```
 """
-from typing import Type, Union, Tuple, Dict, Optional, Any
+from typing import Type, Union, Tuple, Dict, Optional, Any, Callable
 
 from funml import utils, types
 
 
 def enum(enum_name: str) -> Type["Enum"]:
-    """Creates an enum"""
+    """Creates an Enumerable type that can only be in a limited number of forms.
+
+    Creates an Enum type that can only be in a limited number of forms,
+    and that can have some data associated with each instance.
+
+    The different variants of the enum are added to it by use of the
+    chainable `opt()` method.
+
+    The associated data's shape for each given variant is passed as the `shape`
+    kwarg. It can be left out if no data is associated with the given variant.
+
+    The pre-created types of [`Option`][funml.Option] and [`Result`][funml.Result]
+    are both enums
+
+    Args:
+        enum_name: the name of the Enumerable type
+
+    Returns:
+        An Enumerable type whose variants can be added to it by chaining `.opt()` calls.
+
+    Example:
+        ```python
+        import funml as ml
+        from datetime import date
+
+        Day = (
+                ml.enum("Day")
+                    .opt("MON", shape=date)
+                    .opt("TUE", shape=date)
+                    .opt("WED", shape=date)
+                    .opt("THUR", shape=date)
+                    .opt("FRI", shape=date)
+                    .opt("SAT", shape=date)
+                    .opt("SUN", shape=date)
+        )
+
+        dates =  [
+            date(200, 3, 4),
+            date(2009, 1, 16),
+            date(1993, 12, 29),
+            date(2004, 10, 13),
+            date(2020, 9, 5),
+            date(2004, 5, 7),
+            date(1228, 8, 18),
+        ]
+
+        to_day_enum = lambda date_value: (
+            ml.match(date_value.weekday())
+                .case(0, do=lambda: Day.MON(date_value))
+                .case(1, do=lambda: Day.TUE(date_value))
+                .case(2, do=lambda: Day.WED(date_value))
+                .case(3, do=lambda: Day.THUR(date_value))
+                .case(4, do=lambda: Day.FRI(date_value))
+                .case(5, do=lambda: Day.SAT(date_value))
+                .case(6, do=lambda: Day.SUN(date_value))
+        )()
+
+        day_enums = ml.l(*dates).map(to_day_enum)
+
+        print(day_enums)
+        # prints [<Day.TUE: (datetime.date(200, 3, 4),)>, <Day.FRI: (datetime.date(2009, 1, 16),)>,\
+        # <Day.WED: (datetime.date(1993, 12, 29),)>, <Day.WED: (datetime.date(2004, 10, 13),)>, \
+        # <Day.SAT: (datetime.date(2020, 9, 5),)>, <Day.FRI: (datetime.date(2004, 5, 7),)>, \
+        # <Day.FRI: (datetime.date(1228, 8, 18),)>]
+        ```
+    """
     return type(enum_name, (Enum,), {})
 
 
@@ -45,7 +122,16 @@ def _is_valid(
 
 
 class Enum(types.MLType):
-    """An enumerable data type"""
+    """An enumerable data type
+
+    This is the base class for all Enumerable types.
+
+    Attributes:
+        args: the associated data of this enum. When pattern matching, this has types instead of values
+
+    Raises:
+        TypeError: got unexpected data type, different from the signature
+    """
 
     signature: Optional[Union[Tuple[Type, ...], Dict[str, Type]]] = None
     _name: str = ""
@@ -64,7 +150,18 @@ class Enum(types.MLType):
         name: str,
         shape: Optional[Union[Type, Tuple[Type, ...], Dict[str, Type]]] = None,
     ) -> Type["Enum"]:
-        """Adds a given option to the enum"""
+        """Adds a given option to the enum.
+
+        This is a chainable method that can be used to add multiple options
+        to the same enum class.
+
+        Args:
+            name: the name of the option e.g. `ERR` for the [`Result`][funml.Result] enum
+            shape: the signature of the associated data
+
+        Returns:
+             the Enum class to which the option has been attached.
+        """
         dotted_name = f"{cls.__name__}.{name}"
         signature = shape
         if not isinstance(signature, (dict, tuple, type(None))):
@@ -85,22 +182,24 @@ class Enum(types.MLType):
 
     @property
     def value(self):
+        """The value associated with this Enum option, if any"""
         return self._value
 
     @property
     def name(self):
+        """The name of this Enum"""
         return self._name
 
-    def generate_case(self, do: types.Operation):
-        """Generates a case statement for pattern matching"""
+    def generate_case(self, do: types.Operation) -> Tuple[Callable, types.Expression]:
+        """See Base Class: [`MLType`][funml.types.MLType]"""
         op = lambda *args: do(*args)
         if self._value is not None:
             op = lambda arg: do(_get_enum_captured_value(arg))
 
         return self._is_like, types.Expression(types.Operation(func=op))
 
-    def _is_like(self, other):
-        """Checks that a value has the given pattern"""
+    def _is_like(self, other) -> bool:
+        """See Base Class: [`MLType`][funml.types.MLType]"""
         if not isinstance(other, Enum):
             return False
 
@@ -111,6 +210,11 @@ class Enum(types.MLType):
         )
 
     def __eq__(self, other: "Enum"):
+        """Checks equality of the this enum and `other`.
+
+        Args:
+            other: the value to compare with current enum.
+        """
         return (
             self.__class__ == other.__class__
             and self._name == other._name
@@ -118,6 +222,7 @@ class Enum(types.MLType):
         )
 
     def __str__(self):
+        """Generates a readable presentation of the enum."""
         return f"<{self.name}: {self.value}>"
 
 

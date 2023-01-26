@@ -1,4 +1,4 @@
-# funml
+# FunML
 
 [![PyPI version](https://badge.fury.io/py/funml.svg)](https://badge.fury.io/py/funml) ![CI](https://github.com/sopherapps/funml/actions/workflows/CI.yml/badge.svg)
 
