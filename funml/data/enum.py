@@ -6,12 +6,10 @@ Typical Usage:
     import funml as ml
 
 
-    Color = (
-        ml.enum("Color")
-            .opt("RED")
-            .opt("BLUE", shape={'h': str, 's': str})
-            .opt("GREEN", shape=(int, str))
-    )
+    class Color(ml.Enum):
+        RED = None
+        BLUE ={'h': str, 's': str}
+        GREEN =(int, str)
 
     r = Color.RED
     g = Color.GREEN(6, "string")
@@ -32,42 +30,55 @@ from typing import Type, Union, Tuple, Dict, Optional, Any, Callable
 from funml import utils, types
 
 
-def enum(enum_name: str) -> Type["Enum"]:
-    """Creates an Enumerable type that can only be in a limited number of forms.
+def _is_valid(
+    value: Tuple[Any, ...],
+    signature: Optional[Union[Tuple[Type, ...], Dict[str, Type]]],
+) -> bool:
+    """Checks to see if value is of given signature"""
+    if signature is None:
+        return True
+    elif isinstance(signature, tuple) and isinstance(value, tuple):
+        return all([utils.is_type(v, sig) for sig, v in zip(signature, value)])
+    elif isinstance(signature, dict) and len(value) == 1 and isinstance(value[0], dict):
+        return all(
+            [
+                utils.is_type(value[0].get(sig_key, None), sig_type)
+                for sig_key, sig_type in signature.items()
+            ]
+        )
+    return False
 
-    Creates an Enum type that can only be in a limited number of forms,
-    and that can have some data associated with each instance.
 
-    The different variants of the enum are added to it by use of the
-    chainable `opt()` method.
+class Enum(types.MLType):
+    """Enumerable type that can only be in a limited number of forms.
 
-    The associated data's shape for each given variant is passed as the `shape`
-    kwarg. It can be left out if no data is associated with the given variant.
+    Other enums are created by inheriting from this type.
+    An enum can only be in a limited number of forms or variant and each variant
+    can have some data associated with each instance.
+
+    Variants are created by setting class attributes. The value of the class
+    attributes should be the shape of the associated data or `None` if variant has no
+    associated data.
 
     The pre-created types of [`Option`][funml.Option] and [`Result`][funml.Result]
     are both enums
 
-    Args:
-        enum_name: the name of the Enumerable type
-
-    Returns:
-        An Enumerable type whose variants can be added to it by chaining `.opt()` calls.
+    Raises:
+        TypeError: got unexpected data type, different from the signature
 
     Example:
         ```python
         import funml as ml
         from datetime import date
 
-        Day = (
-                ml.enum("Day")
-                    .opt("MON", shape=date)
-                    .opt("TUE", shape=date)
-                    .opt("WED", shape=date)
-                    .opt("THUR", shape=date)
-                    .opt("FRI", shape=date)
-                    .opt("SAT", shape=date)
-                    .opt("SUN", shape=date)
-        )
+        class Day(ml.Enum):
+            MON = date
+            TUE = date
+            WED = date
+            THUR = date
+            FRI = date
+            SAT = date
+            SUN = date
 
         dates =  [
             date(200, 3, 4),
@@ -99,42 +110,16 @@ def enum(enum_name: str) -> Type["Enum"]:
         # <Day.FRI: (datetime.date(1228, 8, 18),)>]
         ```
     """
-    return type(enum_name, (Enum,), {})
-
-
-def _is_valid(
-    value: Tuple[Any, ...],
-    signature: Optional[Union[Tuple[Type, ...], Dict[str, Type]]],
-) -> bool:
-    """Checks to see if value is of given signature"""
-    if signature is None:
-        return True
-    elif isinstance(signature, tuple) and isinstance(value, tuple):
-        return all([utils.is_type(v, sig) for sig, v in zip(signature, value)])
-    elif isinstance(signature, dict) and len(value) == 1 and isinstance(value[0], dict):
-        return all(
-            [
-                utils.is_type(value[0].get(sig_key, None), sig_type)
-                for sig_key, sig_type in signature.items()
-            ]
-        )
-    return False
-
-
-class Enum(types.MLType):
-    """An enumerable data type
-
-    This is the base class for all Enumerable types.
-
-    Attributes:
-        args: the associated data of this enum. When pattern matching, this has types instead of values
-
-    Raises:
-        TypeError: got unexpected data type, different from the signature
-    """
 
     signature: Optional[Union[Tuple[Type, ...], Dict[str, Type]]] = None
     _name: str = ""
+
+    def __init_subclass__(cls, **kwargs):
+        """Creating a new Enum"""
+        cls.__slots__ = []
+        for k, v in _get_cls_attrs(cls).items():
+            cls.__add_variant(k, v)
+            cls.__slots__.append(k)
 
     def __init__(self, *args: Union[Any, Dict[str, Any], int]):
         if not _is_valid(args, self.signature):
@@ -145,7 +130,7 @@ class Enum(types.MLType):
         self._value = args
 
     @classmethod
-    def opt(
+    def __add_variant(
         cls,
         name: str,
         shape: Optional[Union[Type, Tuple[Type, ...], Dict[str, Type]]] = None,
@@ -231,3 +216,15 @@ def _get_enum_captured_value(instance: Enum):
     if isinstance(instance.signature, tuple) and len(instance.value) == 1:
         return instance.value[0]
     return instance.value
+
+
+def _get_cls_attrs(cls: type) -> Dict[str, Any]:
+    """Gets the attributes of the given class
+
+    Args:
+        cls: the class whose attributes are needed
+
+    Returns:
+        the class attributes as a dictionary
+    """
+    return {k: v for k, v in cls.__dict__.items() if not k.startswith("_")}

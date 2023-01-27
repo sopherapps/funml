@@ -7,21 +7,20 @@ import funml as ml
 def main():
     """Main program"""
     # define some data types
-    Date = (
-        ml.enum("Date")
-        .opt("January", shape=date)
-        .opt("February", shape=date)
-        .opt("March", shape=date)
-        .opt("April", shape=date)
-        .opt("May", shape=date)
-        .opt("June", shape=date)
-        .opt("July", shape=date)
-        .opt("August", shape=date)
-        .opt("September", shape=date)
-        .opt("October", shape=date)
-        .opt("November", shape=date)
-        .opt("December", shape=date)
-    )
+    class Date(ml.Enum):
+        January = date
+        February = date
+        March = date
+        April = date
+        May = date
+        June = date
+        July = date
+        August = date
+        September = date
+        October = date
+        November = date
+        December = date
+
     Color = ml.record({"r": int, "g": int, "b": int, "a": int})
 
     # defining a number of functions

@@ -15,7 +15,7 @@ Provides:
 """
 from .pattern_match import match
 from .assignments import let, val
-from .data.enum import enum
+from .data.enum import Enum
 from .data.monads import Option, Result
 from .data.records import record
 from .data.lists import l
@@ -24,7 +24,7 @@ __all__ = [
     "let",
     "match",
     "val",
-    "enum",
+    "Enum",
     "Option",
     "Result",
     "record",
