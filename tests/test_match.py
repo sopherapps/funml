@@ -61,8 +61,19 @@ def test_match_enums():
 
 def test_match_records():
     """records can be pattern matched"""
-    Color = record({"r": int, "g": int, "b": int, "a": int})
-    User = record({"first": str, "last": str, "age": int})
+
+    @record
+    class Color:
+        r: int
+        g: int
+        b: int
+        a: int
+
+    @record
+    class User:
+        first: str
+        last: str
+        age: int
 
     test_data = [
         (Color(r=0, g=0, b=255, a=0), "r:0g:0b:255a:0"),

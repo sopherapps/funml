@@ -21,7 +21,12 @@ def main():
         November = date
         December = date
 
-    Color = ml.record({"r": int, "g": int, "b": int, "a": int})
+    @ml.record
+    class Color:
+        r: int
+        g: int
+        b: int
+        a: int
 
     # defining a number of functions
     is_even = lambda v: v % 2 == 0
