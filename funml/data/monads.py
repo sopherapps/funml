@@ -19,6 +19,26 @@ def if_ok(do: Union[Expression, Assignment, Callable, Any], strict=True) -> Expr
         do: The expression, function, assignment to run or value to return when Result.OK
         strict: if only Results should be expected
 
+    Example:
+        ```python
+        import funml as ml
+
+        ok_value = ml.Result.OK(90)
+        err_value = ml.Result.ERR(TypeError("some stuff"))
+        another_value = None
+
+        # in case the value may not be a Result, set strict to False
+        print(ml.if_ok(str, strict=False)(another_value))
+        # prints None
+
+        ok_to_str = ml.if_ok(str)
+        print(ok_to_str(err_value))
+        # prints <Result.ERR: (TypeError('some stuff'),)>
+
+        print(ok_to_str(ok_value))
+        # prints 90
+        ```
+
     Returns:
         An expression to run the `do` operation when value passed to expression is Result.OK
         or to just return the Result.ERR
@@ -47,6 +67,26 @@ def if_err(do: Union[Expression, Assignment, Callable, Any], strict=True) -> Exp
     Args:
         do: The expression, function, assignment to run or value to return when Result.ERR
         strict: if only Results should be expected
+
+    Example:
+        ```python
+        import funml as ml
+
+        ok_value = ml.Result.OK(90)
+        err_value = ml.Result.ERR(TypeError("some stuff"))
+        another_value = None
+
+        # in case the value may not be a Result, set strict to False
+        print(ml.if_err(str, strict=False)(another_value))
+        # prints None
+
+        err_to_str = ml.if_err(str)
+        print(err_to_str(err_value))
+        # prints 'some stuff'
+
+        print(err_to_str(ok_value))
+        # prints <Result.OK: ('90',)>
+        ```
 
     Returns:
         An expression to run the `do` operation when value passed to expression is Result.ERR
@@ -79,6 +119,26 @@ def if_some(
         do: The expression, function, assignment to run or value to return when Option.SOME
         strict: if only Options should be expected
 
+    Example:
+        ```python
+        import funml as ml
+
+        some_value = ml.Option.SOME(90)
+        none_value = ml.Option.NONE
+        another_value = None
+
+        # in case the value may not be an Option, set strict to False
+        print(ml.if_some(str, strict=False)(another_value))
+        # prints None
+
+        some_to_str = ml.if_some(str)
+        print(some_to_str(some_value))
+        # prints 90
+
+        print(some_to_str(none_value))
+        # prints <Option.NONE: ('NONE',)>
+        ```
+
     Returns:
         An expression to run the `do` operation when value passed to expression is Option.SOME
         or to just return the Option.NONE
@@ -110,6 +170,26 @@ def if_none(
         do: The expression, function, assignment to run or value to return when Option.NONE
         strict: if only Options should be expected
 
+    Example:
+        ```python
+        import funml as ml
+
+        some_value = ml.Option.SOME(90)
+        none_value = ml.Option.NONE
+        another_value = None
+
+        # in case the value may not be an Option, set strict to False
+        print(ml.if_none(str, strict=False)(another_value))
+        # prints None
+
+        none_to_str = ml.if_none(str)
+        print(none_to_str(some_value))
+        # prints <Option.SOME: (90,)>
+
+        print(none_to_str(none_value))
+        # prints ('NONE',)
+        ```
+
     Returns:
         An expression to run the `do` operation when value passed to expression is Option.NONE
         or to just return the Option.SOME
@@ -136,6 +216,27 @@ def is_ok(v: "Result", strict=True) -> bool:
         v: The value to check
         strict: if value should be a Result
 
+    Example:
+        ```python
+        import funml as ml
+
+        ok_value = ml.Result.OK(90)
+        err_value = ml.Result.ERR(TypeError())
+
+        print(ml.is_ok(ok_value))
+        # prints True
+
+        print(ml.is_ok(err_value))
+        # prints False
+
+        another_value = None
+
+        # in case the value is not always a Result, set `strict` to False
+        # to avoid a MatchError
+        print(ml.is_ok(another_value, strict=False))
+        # prints False
+        ```
+
     Returns:
         True if `v` is a Result.OK else False
 
@@ -157,6 +258,27 @@ def is_err(v: "Result", strict=True) -> bool:
     Args:
         v: The value to check
         strict: if value should be a Result
+
+    Example:
+        ```python
+        import funml as ml
+
+        ok_value = ml.Result.OK(90)
+        err_value = ml.Result.ERR(TypeError())
+
+        print(ml.is_err(ok_value))
+        # prints False
+
+        print(ml.is_err(err_value))
+        # prints True
+
+        another_value = None
+
+        # in case the value is not always a Result, set `strict` to False
+        # to avoid a MatchError
+        print(ml.is_err(another_value, strict=False))
+        # prints False
+        ```
 
     Returns:
         True if `v` is a Result.ERR else False
@@ -180,6 +302,27 @@ def is_some(v: "Option", strict=True) -> bool:
         v: The value to check
         strict: if value should be a Option
 
+    Example:
+        ```python
+        import funml as ml
+
+        some_value = ml.Option.SOME(90)
+        none_value = ml.Option.NONE
+
+        print(ml.is_some(some_value))
+        # prints True
+
+        print(ml.is_some(none_value))
+        # prints False
+
+        another_value = None
+
+        # in case the value is not always an Option, set `strict` to False
+        # to avoid a MatchError
+        print(ml.is_some(another_value, strict=False))
+        # prints False
+        ```
+
     Returns:
         True if `v` is a Option.SOME else False
 
@@ -201,6 +344,27 @@ def is_none(v: "Option", strict=True) -> bool:
     Args:
         v: The value to check
         strict: if value should be a Option
+
+    Example:
+        ```python
+        import funml as ml
+
+        some_value = ml.Option.SOME(90)
+        none_value = ml.Option.NONE
+
+        print(ml.is_none(some_value))
+        # prints False
+
+        print(ml.is_none(none_value))
+        # prints True
+
+        another_value = None
+
+        # in case the value is not always an Option, set `strict` to False
+        # to avoid a MatchError
+        print(ml.is_none(another_value, strict=False))
+        # prints False
+        ```
 
     Returns:
         True if `v` is a Option.NONE else False
