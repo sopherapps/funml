@@ -1,51 +1,9 @@
 """All types used by funml"""
 from inspect import signature
-from typing import Any, Type, Union, Callable, Optional, List, Tuple
+from typing import Any, Union, Callable, Optional, List, Tuple
 
 from funml import errors
 from funml.utils import is_equal_or_of_type
-
-
-class Assignment:
-    """A variable assignment
-
-    Assigns a given value a variable name and type. It will check that
-    the data type passed is as expected. It can thus be used to
-    validate third party data before passing it through the ml-program.
-
-    Args:
-        var: the variable name
-        t: the variable type
-        val: the value stored in the variable
-
-    Raises:
-        TypeError: `val` passed is not of type `t`
-    """
-
-    def __init__(self, var: Any, t: Type = type(None), val: Any = None):
-        self.__var = var
-        self.__t = t
-
-        if not isinstance(val, t):
-            raise TypeError(f"expected type {t}, got {type(val)}")
-
-        self.__val = val
-
-    def __rshift__(self, nxt: Union["Expression", "Assignment", Callable]):
-        """This makes piping using the '>>' symbol possible
-
-        Combines with the given expression, assignments, Callables to produce a new expression
-        where data flows from current to nxt
-        """
-        return _append_expn(self, nxt)
-
-    def __iter__(self):
-        """Generates an iterator that can be used to create a dict using dict()"""
-        yield self.__var, self.__val
-
-    def __call__(self) -> Any:
-        """Returns the value associated with this assignment"""
-        return self.__val
 
 
 class Context(dict):
@@ -125,14 +83,14 @@ class Expression:
 
         return self._f(*args, **self._context, **kwargs)
 
-    def __rshift__(self, nxt: Union["Expression", "Assignment", Callable]):
+    def __rshift__(self, nxt: Union["Expression", Callable]):
         """This makes piping using the '>>' symbol possible.
 
         Combines with the given `nxt` expression to produce a new expression
         where data flows from current to nxt.
 
         Args:
-            nxt: the next expression, assignment or callable to apply after the current one.
+            nxt: the next expression, or callable to apply after the current one.
         """
         merged_expn = _append_expn(self, nxt)
 
@@ -334,15 +292,10 @@ def _get_func_signature(func: Callable):
         return signature(func.__call__)
 
 
-def to_expn(v: Union["Expression", "Assignment", Callable, Any]) -> "Expression":
+def to_expn(v: Union["Expression", Callable, Any]) -> "Expression":
     """Converts a Callable or Expression into an Expression"""
     if isinstance(v, Expression):
         return v
-    elif isinstance(v, Assignment):
-        # update the context
-        return Expression(
-            Operation(lambda *args, **kwargs: Context(**kwargs, **dict(v)))
-        )
     elif isinstance(v, Callable):
         return Expression(Operation(v))
     # return a noop expression
@@ -350,8 +303,8 @@ def to_expn(v: Union["Expression", "Assignment", Callable, Any]) -> "Expression"
 
 
 def _append_expn(
-    first: Union["Expression", "Assignment", Callable, Any],
-    other: Union["Expression", "Assignment", Callable, Any],
+    first: Union["Expression", Callable, Any],
+    other: Union["Expression", Callable, Any],
 ):
     """Returns a new combined Expression where the current expression runs before the passed expression"""
     other = to_expn(other)

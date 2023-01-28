@@ -82,7 +82,6 @@ def main():
 
     We have some builtin primitive expressions like
     - ml.val
-    - ml.let 
     - ml.match
     - ml.execute
     - ml.ireduce
@@ -140,7 +139,7 @@ def main():
             accum if num <= 0 else accum_factorial(num - 1, num * accum)
         )
     )
-    cube = ml.let(int, power=3) >> superscript
+    cube = ml.val(lambda v: superscript(v, 3))
     factorial = ml.val(lambda x: accum_factorial(x, 1))
     get_item_types = ml.ireduce(lambda x, y: f"{type(x)}, {type(y)}")
     num_type_err = ml.val(

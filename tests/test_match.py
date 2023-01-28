@@ -2,7 +2,7 @@ import dataclasses
 from functools import reduce
 from typing import Any
 
-from funml import Option, match, record, l, imap, ireduce
+from funml import Option, match, record, l, imap, ireduce, val
 
 
 def test_match_any_type():

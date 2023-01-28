@@ -6,19 +6,17 @@ from typing import Any, Union, Callable
 
 from .enum import Enum
 from .. import match
-from ..types import Assignment, Expression, to_expn, Operation
+from ..types import Expression, to_expn, Operation
 
 
-def if_ok(
-    do: Union[Expression, Assignment, Callable, Any], strict: bool = True
-) -> Expression:
+def if_ok(do: Union[Expression, Callable, Any], strict: bool = True) -> Expression:
     """Does the given operation if value passed to resulting expression is Result.OK.
 
     If the value is Result.ERR, it just returns the Result.ERR without
     doing anything about it.
 
     Args:
-        do: The expression, function, assignment to run or value to return when Result.OK
+        do: The expression, function to run or value to return when Result.OK
         strict: if only Results should be expected
 
     Example:
@@ -60,16 +58,14 @@ def if_ok(
     return Expression(Operation(routine))
 
 
-def if_err(
-    do: Union[Expression, Assignment, Callable, Any], strict: bool = True
-) -> Expression:
+def if_err(do: Union[Expression, Callable, Any], strict: bool = True) -> Expression:
     """Does the given operation if value passed to resulting expression is Result.ERR.
 
     If the value is Result.OK, it just returns the Result.OK without
     doing anything about it.
 
     Args:
-        do: The expression, function, assignment to run or value to return when Result.ERR
+        do: The expression, function, to run or value to return when Result.ERR
         strict: if only Results should be expected
 
     Example:
@@ -111,16 +107,14 @@ def if_err(
     return Expression(Operation(routine))
 
 
-def if_some(
-    do: Union[Expression, Assignment, Callable, Any], strict: bool = True
-) -> Expression:
+def if_some(do: Union[Expression, Callable, Any], strict: bool = True) -> Expression:
     """Does the given operation if value passed to resulting expression is Option.SOME.
 
     If the value is Result.NONE, it just returns the Result.NONE without
     doing anything about it.
 
     Args:
-        do: The expression, function, assignment to run or value to return when Option.SOME
+        do: The expression, function, to run or value to return when Option.SOME
         strict: if only Options should be expected
 
     Example:
@@ -162,16 +156,14 @@ def if_some(
     return Expression(Operation(routine))
 
 
-def if_none(
-    do: Union[Expression, Assignment, Callable, Any], strict: bool = True
-) -> Expression:
+def if_none(do: Union[Expression, Callable, Any], strict: bool = True) -> Expression:
     """Does the given operation if value passed to resulting expression is Option.NONE.
 
     If the value is Option.SOME, it just returns the Option.SOME without
     doing anything about it.
 
     Args:
-        do: The expression, function, assignment to run or value to return when Option.NONE
+        do: The expression, function, to run or value to return when Option.NONE
         strict: if only Options should be expected
 
     Example:
