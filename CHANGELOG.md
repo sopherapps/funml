@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Result helpers: `if_ok`, `if_err`, `is_ok`, `is_err`.
 - Option helpers: `if_some`, `if_none`, `is_some`, `is_none`.
 - Sequence helpers: `imap`, `ifilter`, `ireduce`.
+- Pipeline helper: `funml.execute()`.
 
 ### Changed
 
