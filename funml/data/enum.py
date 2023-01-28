@@ -6,12 +6,10 @@ Typical Usage:
     import funml as ml
 
 
-    Color = (
-        ml.enum("Color")
-            .opt("RED")
-            .opt("BLUE", shape={'h': str, 's': str})
-            .opt("GREEN", shape=(int, str))
-    )
+    class Color(ml.Enum):
+        RED = None
+        BLUE ={'h': str, 's': str}
+        GREEN =(int, str)
 
     r = Color.RED
     g = Color.GREEN(6, "string")
@@ -30,76 +28,6 @@ Typical Usage:
 from typing import Type, Union, Tuple, Dict, Optional, Any, Callable
 
 from funml import utils, types
-
-
-def enum(enum_name: str) -> Type["Enum"]:
-    """Creates an Enumerable type that can only be in a limited number of forms.
-
-    Creates an Enum type that can only be in a limited number of forms,
-    and that can have some data associated with each instance.
-
-    The different variants of the enum are added to it by use of the
-    chainable `opt()` method.
-
-    The associated data's shape for each given variant is passed as the `shape`
-    kwarg. It can be left out if no data is associated with the given variant.
-
-    The pre-created types of [`Option`][funml.Option] and [`Result`][funml.Result]
-    are both enums
-
-    Args:
-        enum_name: the name of the Enumerable type
-
-    Returns:
-        An Enumerable type whose variants can be added to it by chaining `.opt()` calls.
-
-    Example:
-        ```python
-        import funml as ml
-        from datetime import date
-
-        Day = (
-                ml.enum("Day")
-                    .opt("MON", shape=date)
-                    .opt("TUE", shape=date)
-                    .opt("WED", shape=date)
-                    .opt("THUR", shape=date)
-                    .opt("FRI", shape=date)
-                    .opt("SAT", shape=date)
-                    .opt("SUN", shape=date)
-        )
-
-        dates =  [
-            date(200, 3, 4),
-            date(2009, 1, 16),
-            date(1993, 12, 29),
-            date(2004, 10, 13),
-            date(2020, 9, 5),
-            date(2004, 5, 7),
-            date(1228, 8, 18),
-        ]
-
-        to_day_enum = lambda date_value: (
-            ml.match(date_value.weekday())
-                .case(0, do=lambda: Day.MON(date_value))
-                .case(1, do=lambda: Day.TUE(date_value))
-                .case(2, do=lambda: Day.WED(date_value))
-                .case(3, do=lambda: Day.THUR(date_value))
-                .case(4, do=lambda: Day.FRI(date_value))
-                .case(5, do=lambda: Day.SAT(date_value))
-                .case(6, do=lambda: Day.SUN(date_value))
-        )()
-
-        day_enums = ml.l(*dates).map(to_day_enum)
-
-        print(day_enums)
-        # prints [<Day.TUE: (datetime.date(200, 3, 4),)>, <Day.FRI: (datetime.date(2009, 1, 16),)>,\
-        # <Day.WED: (datetime.date(1993, 12, 29),)>, <Day.WED: (datetime.date(2004, 10, 13),)>, \
-        # <Day.SAT: (datetime.date(2020, 9, 5),)>, <Day.FRI: (datetime.date(2004, 5, 7),)>, \
-        # <Day.FRI: (datetime.date(1228, 8, 18),)>]
-        ```
-    """
-    return type(enum_name, (Enum,), {})
 
 
 def _is_valid(
@@ -122,19 +50,80 @@ def _is_valid(
 
 
 class Enum(types.MLType):
-    """An enumerable data type
+    """Enumerable type that can only be in a limited number of forms.
 
-    This is the base class for all Enumerable types.
+    Other enums are created by inheriting from this type.
+    An enum can only be in a limited number of forms or variant and each variant
+    can have some data associated with each instance.
 
-    Attributes:
-        args: the associated data of this enum. When pattern matching, this has types instead of values
+    Variants are created by setting class attributes. The value of the class
+    attributes should be the shape of the associated data or `None` if variant has no
+    associated data.
+
+    The pre-created types of [`Option`][funml.Option] and [`Result`][funml.Result]
+    are both enums
 
     Raises:
         TypeError: got unexpected data type, different from the signature
+
+    Example:
+        ```python
+        import funml as ml
+        from datetime import date
+
+        class Day(ml.Enum):
+            MON = date
+            TUE = date
+            WED = date
+            THUR = date
+            FRI = date
+            SAT = date
+            SUN = date
+
+        dates =  [
+            date(200, 3, 4),
+            date(2009, 1, 16),
+            date(1993, 12, 29),
+            date(2004, 10, 13),
+            date(2020, 9, 5),
+            date(2004, 5, 7),
+            date(1228, 8, 18),
+        ]
+
+        to_day_enum = lambda date_value: (
+            ml.match(date_value.weekday())
+                .case(0, do=lambda: Day.MON(date_value))
+                .case(1, do=lambda: Day.TUE(date_value))
+                .case(2, do=lambda: Day.WED(date_value))
+                .case(3, do=lambda: Day.THUR(date_value))
+                .case(4, do=lambda: Day.FRI(date_value))
+                .case(5, do=lambda: Day.SAT(date_value))
+                .case(6, do=lambda: Day.SUN(date_value))
+        )()
+
+        day_enums_transform = ml.imap(to_day_enum)
+        day_enums = day_enums_transform(dates)
+
+        print(day_enums)
+        # prints [<Day.TUE: (datetime.date(200, 3, 4),)>, <Day.FRI: (datetime.date(2009, 1, 16),)>,\
+        # <Day.WED: (datetime.date(1993, 12, 29),)>, <Day.WED: (datetime.date(2004, 10, 13),)>, \
+        # <Day.SAT: (datetime.date(2020, 9, 5),)>, <Day.FRI: (datetime.date(2004, 5, 7),)>, \
+        # <Day.FRI: (datetime.date(1228, 8, 18),)>]
+        ```
     """
 
     signature: Optional[Union[Tuple[Type, ...], Dict[str, Type]]] = None
     _name: str = ""
+
+    def __init_subclass__(cls, **kwargs):
+        """Creating a new Enum"""
+        slots = []
+
+        for k, v in _get_cls_attrs(cls).items():
+            cls.__add_variant(k, v)
+            slots.append(k)
+
+        cls.__slots__ = slots
 
     def __init__(self, *args: Union[Any, Dict[str, Any], int]):
         if not _is_valid(args, self.signature):
@@ -145,7 +134,7 @@ class Enum(types.MLType):
         self._value = args
 
     @classmethod
-    def opt(
+    def __add_variant(
         cls,
         name: str,
         shape: Optional[Union[Type, Tuple[Type, ...], Dict[str, Type]]] = None,
@@ -218,7 +207,7 @@ class Enum(types.MLType):
         return (
             self.__class__ == other.__class__
             and self._name == other._name
-            and self._value == other._value
+            and utils.equals(self._value, other._value)
         )
 
     def __str__(self):
@@ -231,3 +220,15 @@ def _get_enum_captured_value(instance: Enum):
     if isinstance(instance.signature, tuple) and len(instance.value) == 1:
         return instance.value[0]
     return instance.value
+
+
+def _get_cls_attrs(cls: type) -> Dict[str, Any]:
+    """Gets the attributes of the given class
+
+    Args:
+        cls: the class whose attributes are needed
+
+    Returns:
+        the class attributes as a dictionary
+    """
+    return {k: v for k, v in cls.__dict__.items() if not k.startswith("_")}

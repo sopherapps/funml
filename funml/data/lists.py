@@ -13,10 +13,12 @@ Typical Usage:
     value = ml.l(5, 6) + list1
 
     # deleting data (immutably) i.e. new list is got
-    value = list1.filter(lambda v: v < 9)
+    up_to_9_filter = ml.ifilter(lambda v: v < 9)
+    value = up_to_9_filter(list1)
 
     # transforming data (immutably) i.e. new list is got
-    value = list1.map(lambda v: v + 9)
+    add_9_transform = ml.imap(lambda v: v + 9)
+    value = add_9_transform(list1)
 
     # iterating data using head and
     def print_head(v: ml.data.lists.IList) -> ml.data.lists.IList:
@@ -31,10 +33,11 @@ Typical Usage:
     )
     ```
 """
+from functools import reduce
 from typing import Any, Optional, Callable, List, Tuple, Union
 
-from funml import types
-from funml.utils import is_equal_or_of_type
+from funml import types, utils
+from funml.types import Expression, Operation
 
 
 def l(*args: Any) -> "IList":
@@ -44,8 +47,8 @@ def l(*args: Any) -> "IList":
     once created. It can only be used to create other lists, using methods on it like
 
     - [`+`][funml.data.lists.IList.__add__] - to combine two separate lists into a new one containing elements of both
-    - [`map(fn)`][funml.data.lists.IList.map] - to create a new list with each element transformed according to the given function `fn`
-    - [`filter(fn)`][funml.data.lists.IList.filter] - to return a new list containing only elements that conform to the given function `fn`
+    - [`imap(fn)`][funml.imap] - to create a new list with each element transformed according to the given function `fn`
+    - [`filter(fn)`][funml.ifilter] - to return a new list containing only elements that conform to the given function `fn`
 
     Args:
         args: the items that make up the list
@@ -59,10 +62,16 @@ def l(*args: Any) -> "IList":
 
         items = ml.l(120, 13, 40, 60, "hey", "men")
 
-        nums = items.filter(lambda x: isinstance(x, (int, float)))
-        strings = items.filter(lambda x: isinstance(x, str))
+        num_filter = ml.ifilter(lambda x: isinstance(x, (int, float)))
+        str_filter = ml.ifilter(lambda x: isinstance(x, str))
+        nums = num_filter(items)
+        strings = str_filter(items)
 
-        doubled_nums = nums.map(lambda x: x*2)
+        double_transform = ml.imap(lambda x: x*2)
+        doubled_nums = double_transform(nums)
+
+        aggregator = ml.ireduce(lambda x, y: f"{x}, {y}")
+        list_as_str = aggregator(items)
 
         print(nums)
         # prints [120, 13, 40, 60]
@@ -72,9 +81,65 @@ def l(*args: Any) -> "IList":
 
         print(doubled_nums)
         # prints [240, 26, 80, 120]
+
+        print(list_as_str)
+        # prints '120, 13, 40, 60, hey, men'
         ```
     """
     return IList(*args)
+
+
+def imap(func: Callable[[Any], Any]) -> Expression:
+    """Creates an expression to transform each item by the given function.
+
+    Expressions can be computed lazily at any time.
+
+    Args:
+        func: the function to use to transform each item
+
+    Returns:
+            A new IList with each item in data transformed according to the `func` function.
+    """
+    op = Operation(lambda data: IList(*[func(v) for v in data]))
+    return Expression(op)
+
+
+def ifilter(func: Callable[[Any], Any]) -> Expression:
+    """Creates an expression to transform each item by the given function.
+
+    Expressions can be computed lazily at any time.
+
+    Args:
+        func: the function to use to check if item should remain or be ignored.
+
+    Returns:
+        A new iList with only the items of data that returned true when `func` was called on them.
+    """
+    op = Operation(lambda data: IList(*filter(func, data)))
+    return Expression(op)
+
+
+def ireduce(
+    func: Callable[[Any, Any], Any], initial: Optional[Any] = None
+) -> Expression:
+    """Creates an expression to reduce a sequence into one value using the given `func`.
+
+    Expressions can be computed lazily at any time.
+
+    Args:
+        func: the function to reduce the sequence into a single value.
+        initial: the initial value that acts like a default when sequence is empty,
+                and is added onto by `func` when sequence has some items.
+
+    Returns:
+        A single item got from calling `func` repeatedly across the sequence for every
+        two adjacent items.
+    """
+    if initial is None:
+        op = Operation(lambda data: reduce(func, data))
+    else:
+        op = Operation(lambda data: reduce(func, data, initial))
+    return Expression(op)
 
 
 class IList(types.MLType):
@@ -105,28 +170,6 @@ class IList(types.MLType):
     def tail(self) -> "IList":
         """A new slice of the list containing all items except the first."""
         return IList.__from_node(self._head.next)
-
-    def map(self, func: Callable) -> "IList":
-        """Transforms each item of the list using the given function `func`.
-
-        Args:
-            func: the function to use to transform each item
-
-        Returns:
-            A new copy of the list with each item transformed according to the `func` function.
-        """
-        return IList(*[func(v) for v in self])
-
-    def filter(self, func: Callable) -> "IList":
-        """Creates new list with only items that return true when `func` is called on them.
-
-        Args:
-            func: the function to use to check if item should remain or be ignored.
-
-        Returns:
-            A new list with only the items that returned true when `func` was called on them.
-        """
-        return IList(*filter(func, self))
 
     def generate_case(self, do: types.Operation):
         """See Base class: [`MLType`][funml.types.MLType]"""
@@ -291,11 +334,12 @@ class IList(types.MLType):
         Args:
             other: the value to compare with current list.
         """
-        return self._self_list == other._self_list
+        return utils.equals(self._self_list, other._self_list)
 
     def __str__(self):
         """Generates a readable presentation of the list."""
-        return f"[{', '.join(self.map(str))}]"
+        map_to_str = imap(str)
+        return f"[{', '.join(map_to_str(self))}]"
 
 
 class _Node:
@@ -348,7 +392,7 @@ def _lists_match(schema: List[Any], actual: List[Any]):
         return False
 
     for type_or_val, val in zip(schema, actual):
-        if not is_equal_or_of_type(val, type_or_val=type_or_val):
+        if not utils.is_equal_or_of_type(val, type_or_val=type_or_val):
             return False
 
     return True

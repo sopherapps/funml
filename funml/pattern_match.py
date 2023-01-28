@@ -26,7 +26,11 @@ def match(arg: Optional[Any] = None) -> "MatchExpression":
         ```python
         import funml as ml
 
-        Color = ml.record({"red": int, "green": int, "blue": int})
+        @ml.record
+        class Color:
+            r: int
+            g: int
+            b: int
 
         raw_value = ml.Option.SOME(90)
         value = (

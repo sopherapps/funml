@@ -2,7 +2,7 @@ import dataclasses
 from functools import reduce
 from typing import Any
 
-from funml import Option, match, record, l
+from funml import Option, match, record, l, imap, ireduce
 
 
 def test_match_any_type():
@@ -61,8 +61,19 @@ def test_match_enums():
 
 def test_match_records():
     """records can be pattern matched"""
-    Color = record({"r": int, "g": int, "b": int, "a": int})
-    User = record({"first": str, "last": str, "age": int})
+
+    @record
+    class Color:
+        r: int
+        g: int
+        b: int
+        a: int
+
+    @record
+    class User:
+        first: str
+        last: str
+        age: int
 
     test_data = [
         (Color(r=0, g=0, b=255, a=0), "r:0g:0b:255a:0"),
@@ -96,6 +107,7 @@ def test_match_lists():
         (l(), "Empty"),
     ]
     element_sum = lambda arr: reduce(lambda a, b: a + b, arr, 0)
+    to_str_transform = imap(lambda x: f"{x}") >> ireduce(lambda x, y: f"{x}, {y}")
 
     # '...' is used to capture values to be used in the matching expression
     for arg, expected in test_data:
@@ -106,7 +118,7 @@ def test_match_lists():
             .case(l("foo", 6.0), do=lambda: "one foo")
             .case(l("foo", 6.0, ...), do=lambda: "bar")
             .case(l(str, 6.0, ...), do=lambda: "woo-hoo")
-            .case(l(...), do=lambda rest: ", ".join(rest.map(lambda x: f"{x}")))
+            .case(l(...), do=to_str_transform)
             .case(l(), do=lambda: "Empty")
         )
 

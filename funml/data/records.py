@@ -5,8 +5,13 @@ Typical Usage:
     ```python
     import funml as ml
 
+    @ml.record
+    class Color:
+        r: int
+        g: int
+        b: int
+        a: int
 
-    Color = ml.record({'r': int, 'g': int, 'b': int, 'a': int})
     blue = Color(r=0, g=0, b=255, a=1)
     red = Color(r=255, g=0, b=0, a=1)
     green = Color(r=0, g=255, b=0, a=1)
@@ -21,43 +26,62 @@ Typical Usage:
     # prints: {'r': 0, 'g': 255, 'b': 0, 'a': 1}
     ```
 """
-from dataclasses import dataclass
-from typing import Dict, Any, Type, Callable, Tuple
+import dataclasses
+from typing import Dict, Any, Type, Callable, Tuple, TypeVar
+
+from typing_extensions import dataclass_transform
 
 from funml import utils, types
 
 
-def record(annotations: Dict[str, Any]) -> Type["Record"]:
+R = TypeVar("R", bound="Record")
+
+
+@dataclass_transform(
+    field_specifiers=(dataclasses.Field, dataclasses.field),
+)
+def record(cls: Type[R]) -> Type[R]:
     """Creates a Schema type to create similar records.
 
-    Creates a Schema for similar objects that contain a given
+    Used usually as a decorator inplace of @dataclass
+    on dataclass-like classes to make them ml-functional.
+
+    It creates a Schema for similar objects that contain a given
     set of attributes. For example, it can create a `Book` schema
     whose attributes include `author`, `title`, `isbn` etc.
 
     Args:
-        annotations: a dict of the attributes and their data types
+        cls: the class to transform into a record
 
     Returns:
-        A class/type whose attributes are the same as those passed as `annotations`.
+        A class which can act as a record of the particular schema
+        set by the attributes.
 
     Example:
         ```python
         import funml as ml
 
-        Color = ml.record({"red": int, "green": int, "blue": int})
+        @ml.record
+        class Color:
+            red: int
+            green: int
+            blue: int
+
         indigo = Color(red=75, green=0, blue=130)
 
         print(indigo)
         # prints {'red': 75, 'green': 0, 'blue': 130}
         ```
     """
-
-    record_name = utils.generate_random_string()
-    return dataclass(
+    return dataclasses.dataclass(
         type(
-            record_name,
+            cls.__name__,
             (Record,),
-            {"__annotations__": annotations, "__slots__": tuple(annotations.keys())},
+            {
+                "__annotations__": cls.__annotations__,
+                "__slots__": tuple(cls.__annotations__.keys()),
+                "__dataclass_fields__": cls.__annotations__,
+            },
         ),
         init=False,
         repr=False,
@@ -88,10 +112,9 @@ class Record(types.MLType):
 
     def __init__(self, **kwargs: Any):
         self.__attrs = kwargs
-        annotations = self.__annotations__
-        if not _is_valid(kwargs, annotations):
+        if not _is_valid(kwargs, self.__annotations__):
             raise TypeError(
-                f"expected key-word arguments of signature {annotations}, got {kwargs}"
+                f"expected key-word arguments of signature {self.__annotations__}, got {kwargs}"
             )
 
         for k, v in kwargs.items():

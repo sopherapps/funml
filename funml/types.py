@@ -94,8 +94,14 @@ class Expression:
         f: the operation or logic to run as part of this expression
     """
 
+    # FIXME: Expressions are not working right when undergoing recursion
+    #       It seems as if the operation f is frozen and never changes
+    #       or something like that. Try:     accum_factorial = ml.val(lambda num, accum: (
+    #         ml.match(num <= 0).case(True, do=lambda: accum).case(False, accum_factorial(num - 1, num * accum))()
+    #     ))
+    #     factorial = ml.val(lambda x: accum_factorial(x, 1))
     def __init__(self, f: Optional["Operation"] = None):
-        self._f = f if f is not None else lambda x: x
+        self._f = f if f is not None else Operation(lambda x, *args, **kwargs: x)
         self._context: "Context" = Context()
         self._queue: List[Expression] = []
 
@@ -128,7 +134,13 @@ class Expression:
         Args:
             nxt: the next expression, assignment or callable to apply after the current one.
         """
-        return _append_expn(self, nxt)
+        merged_expn = _append_expn(self, nxt)
+
+        if isinstance(nxt, ExecutionExpression):
+            # stop pipeline, execute and return values
+            return merged_expn()
+
+        return merged_expn
 
     def _run_prev_expns(self, *args: Any, **kwargs: Any) -> Union["Context", Any]:
         """Runs all the previous expressions, returning the final output.
@@ -256,6 +268,36 @@ class MatchExpression(Expression):
         raise errors.MatchError(arg)
 
 
+class ExecutionExpression(Expression):
+    """Expression that executes all previous once it is found on a pipeline
+
+    Args:
+        args: any arguments to run on the pipeline
+        kwargs: any key-word arguments to run on the pipeline.
+
+    Raises:
+        NotImplementedError: when `>>` is used after it.
+    """
+
+    def __init__(self, *args, **kwargs):
+        op = Operation(lambda *a, **kwd: a[0] if len(a) > 0 else None)
+        super().__init__(f=op)
+        self.__args = args
+        self.__kwargs = kwargs
+
+    def __call__(self, *args, **kwargs):
+        """Computes value of most recent expression, using args on object plus any new ones"""
+        return self._run_prev_expns(*self.__args, *args, **self.__kwargs, **kwargs)
+
+    def __rshift__(self, nxt: Any):
+        """rshift is not supported for this.
+
+        This is a terminal expression that expects no other expression
+        after it on the pipeline.
+        """
+        raise NotImplementedError("terminal pipeline expression: `>>` not supported")
+
+
 class Operation:
     """A computation.
 
@@ -267,7 +309,7 @@ class Operation:
         sig = _get_func_signature(func)
         if len(sig.parameters) == 0:
             # be more fault tolerant by using variable params
-            self.__f = lambda *args: func()
+            self.__f = lambda *args, **kwargs: func()
         else:
             self.__f = func
 
@@ -292,7 +334,7 @@ def _get_func_signature(func: Callable):
         return signature(func.__call__)
 
 
-def _to_expn(v: Union["Expression", "Assignment", Callable, Any]) -> "Expression":
+def to_expn(v: Union["Expression", "Assignment", Callable, Any]) -> "Expression":
     """Converts a Callable or Expression into an Expression"""
     if isinstance(v, Expression):
         return v
@@ -312,8 +354,8 @@ def _append_expn(
     other: Union["Expression", "Assignment", Callable, Any],
 ):
     """Returns a new combined Expression where the current expression runs before the passed expression"""
-    other = _to_expn(other)
-    first = _to_expn(first)
+    other = to_expn(other)
+    first = to_expn(first)
 
     other.append_prev_expns(*first._queue, first)
     first.clear_prev_expns()

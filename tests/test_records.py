@@ -8,7 +8,12 @@ from funml import record
 def test_records_created():
     """record creates distinct records"""
 
-    Color = record({"r": int, "g": int, "b": int, "a": int})
+    @record
+    class Color:
+        r: int
+        g: int
+        b: int
+        a: int
 
     blue = Color(r=0, g=0, b=255, a=1)
     red = Color(r=255, g=0, b=0, a=1)
@@ -29,7 +34,13 @@ def test_records_created():
 
 def test_unexpected_fields():
     """Unexpected fields throw error"""
-    Color = record({"r": int, "g": int, "b": int, "a": Optional[int]})
+
+    @record
+    class Color:
+        r: int
+        g: int
+        b: int
+        a: Optional[int]
 
     try:
         _ = Color(r=56, g=4, b=45)  # no error
@@ -42,7 +53,13 @@ def test_unexpected_fields():
 
 def test_no_extra_fields():
     """No extra fields are allowed"""
-    Color = record({"r": int, "g": int, "b": int, "a": int})
+
+    @record
+    class Color:
+        r: int
+        g: int
+        b: int
+        a: int
 
     with pytest.raises(TypeError):
         _ = Color(r=56, g=4, b=45, a=5, y=0)

@@ -2,7 +2,7 @@
 """
 from typing import Type, Any
 
-from funml.types import Assignment, _to_expn, Expression
+from funml.types import Assignment, to_expn, Expression
 
 
 def let(t: Type, **kwargs: Any) -> Assignment:
@@ -66,4 +66,4 @@ def val(v: Any) -> Expression:
         # returns '6'
         ```
     """
-    return _to_expn(v)
+    return to_expn(v)

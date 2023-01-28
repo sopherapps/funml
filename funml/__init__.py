@@ -15,21 +15,45 @@ Provides:
 """
 from .pattern_match import match
 from .assignments import let, val
-from .data.enum import enum
-from .data.monads import Option, Result
+from .data.enum import Enum
+from .data.monads import (
+    Option,
+    Result,
+    if_ok,
+    if_err,
+    if_none,
+    if_some,
+    is_err,
+    is_none,
+    is_ok,
+    is_some,
+)
 from .data.records import record
-from .data.lists import l
+from .data.lists import l, imap, ifilter, ireduce
+from .pipeline import execute
 
 __all__ = [
     "let",
     "match",
     "val",
-    "enum",
+    "Enum",
     "Option",
     "Result",
+    "if_ok",
+    "if_err",
+    "if_some",
+    "if_none",
+    "is_ok",
+    "is_err",
+    "is_some",
+    "is_none",
     "record",
     "l",
+    "imap",
+    "ifilter",
+    "ireduce",
     "errors",
     "types",
     "data",
+    "execute",
 ]

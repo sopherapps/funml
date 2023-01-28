@@ -40,9 +40,12 @@ def generate_random_string() -> str:
 def is_equal_or_of_type(val: Any, type_or_val: Any) -> bool:
     """Checks if the given value is equal or of the type given
 
-    Ellipsis (...) signifies any value
+    Ellipsis (...) or Any signifies any value
     """
-    if type_or_val is ...:
+    if type_or_val in (
+        ...,
+        Any,
+    ):
         return True
 
     if val == type_or_val:
@@ -55,3 +58,30 @@ def is_equal_or_of_type(val: Any, type_or_val: Any) -> bool:
         return False
 
     return False
+
+
+def equals(first: Any, other: Any) -> bool:
+    """Checks for equality for values of any type.
+
+    It is mainly here to handle special cases for
+    types that funml has no control over, and yet
+    don't have a funml-workable __eq__ implementation
+
+    Args:
+        first: the first value to check
+        other: the other value to compare to `first`
+
+    Returns:
+        true if equal, false if not
+    """
+    if isinstance(first, (tuple, list)):
+        return (
+            type(first) == type(other)
+            and len(first) == len(other)
+            and all(equals(v1, v2) for v1, v2 in zip(first, other))
+        )
+
+    if isinstance(first, BaseException):
+        return type(first) == type(other) and str(first) == str(other)
+
+    return first == other
