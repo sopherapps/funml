@@ -1,9 +1,11 @@
 """A collection of utilities to do with piping or pipeline.
 """
+from typing import Any
+
 from funml.types import ExecutionExpression
 
 
-def execute(*args, **kwargs) -> ExecutionExpression:
+def execute(*args: Any, **kwargs: Any) -> ExecutionExpression:
     """Executes a pipeline returning its output.
 
     A pipeline will be executed the moment this expression is

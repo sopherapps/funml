@@ -9,7 +9,9 @@ from .. import match
 from ..types import Assignment, Expression, to_expn, Operation
 
 
-def if_ok(do: Union[Expression, Assignment, Callable, Any], strict=True) -> Expression:
+def if_ok(
+    do: Union[Expression, Assignment, Callable, Any], strict: bool = True
+) -> Expression:
     """Does the given operation if value passed to resulting expression is Result.OK.
 
     If the value is Result.ERR, it just returns the Result.ERR without
@@ -58,7 +60,9 @@ def if_ok(do: Union[Expression, Assignment, Callable, Any], strict=True) -> Expr
     return Expression(Operation(routine))
 
 
-def if_err(do: Union[Expression, Assignment, Callable, Any], strict=True) -> Expression:
+def if_err(
+    do: Union[Expression, Assignment, Callable, Any], strict: bool = True
+) -> Expression:
     """Does the given operation if value passed to resulting expression is Result.ERR.
 
     If the value is Result.OK, it just returns the Result.OK without
@@ -108,7 +112,7 @@ def if_err(do: Union[Expression, Assignment, Callable, Any], strict=True) -> Exp
 
 
 def if_some(
-    do: Union[Expression, Assignment, Callable, Any], strict=True
+    do: Union[Expression, Assignment, Callable, Any], strict: bool = True
 ) -> Expression:
     """Does the given operation if value passed to resulting expression is Option.SOME.
 
@@ -159,7 +163,7 @@ def if_some(
 
 
 def if_none(
-    do: Union[Expression, Assignment, Callable, Any], strict=True
+    do: Union[Expression, Assignment, Callable, Any], strict: bool = True
 ) -> Expression:
     """Does the given operation if value passed to resulting expression is Option.NONE.
 
@@ -209,7 +213,7 @@ def if_none(
     return Expression(Operation(routine))
 
 
-def is_ok(v: "Result", strict=True) -> bool:
+def is_ok(v: "Result", strict: bool = True) -> bool:
     """Checks if `v` is Result.OK.
 
     Args:
@@ -252,7 +256,7 @@ def is_ok(v: "Result", strict=True) -> bool:
     )(v)
 
 
-def is_err(v: "Result", strict=True) -> bool:
+def is_err(v: "Result", strict: bool = True) -> bool:
     """Checks if `v` is Result.ERR.
 
     Args:
@@ -295,7 +299,7 @@ def is_err(v: "Result", strict=True) -> bool:
     )(v)
 
 
-def is_some(v: "Option", strict=True) -> bool:
+def is_some(v: "Option", strict: bool = True) -> bool:
     """Checks if `v` is Option.SOME.
 
     Args:
@@ -338,7 +342,7 @@ def is_some(v: "Option", strict=True) -> bool:
     )(v)
 
 
-def is_none(v: "Option", strict=True) -> bool:
+def is_none(v: "Option", strict: bool = True) -> bool:
     """Checks if `v` is Option.NONE.
 
     Args:

@@ -94,6 +94,12 @@ class Expression:
         f: the operation or logic to run as part of this expression
     """
 
+    # FIXME: Expressions are not working right when undergoing recursion
+    #       It seems as if the operation f is frozen and never changes
+    #       or something like that. Try:     accum_factorial = ml.val(lambda num, accum: (
+    #         ml.match(num <= 0).case(True, do=lambda: accum).case(False, accum_factorial(num - 1, num * accum))()
+    #     ))
+    #     factorial = ml.val(lambda x: accum_factorial(x, 1))
     def __init__(self, f: Optional["Operation"] = None):
         self._f = f if f is not None else Operation(lambda x, *args, **kwargs: x)
         self._context: "Context" = Context()
