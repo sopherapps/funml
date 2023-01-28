@@ -129,6 +129,94 @@ def if_none(
     return Expression(Operation(routine))
 
 
+def is_ok(v: "Result", strict=True) -> bool:
+    """Checks if `v` is Result.OK.
+
+    Args:
+        v: The value to check
+        strict: if value should be a Result
+
+    Returns:
+        True if `v` is a Result.OK else False
+
+    Raises:
+        funml.errors.MatchError: value provided was not a Result if strict is True
+    """
+    negative_pattern = Result.ERR(Exception) if strict else Any
+
+    return (
+        match()
+        .case(Result.OK(Any), do=lambda: True)
+        .case(negative_pattern, do=lambda: False)
+    )(v)
+
+
+def is_err(v: "Result", strict=True) -> bool:
+    """Checks if `v` is Result.ERR.
+
+    Args:
+        v: The value to check
+        strict: if value should be a Result
+
+    Returns:
+        True if `v` is a Result.ERR else False
+
+    Raises:
+        funml.errors.MatchError: value provided was not a Result if strict is True
+    """
+    negative_pattern = Result.OK(Any) if strict else Any
+
+    return (
+        match()
+        .case(Result.ERR(Exception), do=lambda: True)
+        .case(negative_pattern, do=lambda: False)
+    )(v)
+
+
+def is_some(v: "Option", strict=True) -> bool:
+    """Checks if `v` is Option.SOME.
+
+    Args:
+        v: The value to check
+        strict: if value should be a Option
+
+    Returns:
+        True if `v` is a Option.SOME else False
+
+    Raises:
+        funml.errors.MatchError: value provided was not an Option if strict is True
+    """
+    negative_pattern = Option.NONE if strict else Any
+
+    return (
+        match()
+        .case(Option.SOME(Any), do=lambda: True)
+        .case(negative_pattern, do=lambda: False)
+    )(v)
+
+
+def is_none(v: "Option", strict=True) -> bool:
+    """Checks if `v` is Option.NONE.
+
+    Args:
+        v: The value to check
+        strict: if value should be a Option
+
+    Returns:
+        True if `v` is a Option.NONE else False
+
+    Raises:
+        funml.errors.MatchError: value provided was not an Option if strict is True
+    """
+    negative_pattern = Option.SOME(Any) if strict else Any
+
+    return (
+        match()
+        .case(Option.NONE, do=lambda: True)
+        .case(negative_pattern, do=lambda: False)
+    )(v)
+
+
 class Option(Enum):
     """Represents a value that is potentially None
 

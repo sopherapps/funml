@@ -1,6 +1,20 @@
 import pytest
 
-from funml import Result, let, if_ok, Option, record, if_err, if_some, if_none, val
+from funml import (
+    Result,
+    let,
+    if_ok,
+    Option,
+    record,
+    if_err,
+    if_some,
+    if_none,
+    val,
+    is_ok,
+    is_err,
+    is_some,
+    is_none,
+)
 from funml.errors import MatchError
 
 
@@ -74,6 +88,61 @@ def test_if_ok_if_err_match_error():
         assert if_err(do, strict=False)(value) == value
 
 
+def test_is_ok():
+    """is_ok returns True value is Result.OK, else False"""
+    test_data = [
+        # value, expected
+        (Result.OK(90), True),
+        (Result.OK(9.90), True),
+        (Result.OK("yeah"), True),
+        (Result.ERR(ValueError()), False),
+        (Result.ERR(Exception()), False),
+        (Result.ERR(TypeError()), False),
+    ]
+
+    for value, expected in test_data:
+        assert is_ok(value) == expected
+
+
+def test_is_err():
+    """is_err returns True value is Result.ERR, else False"""
+    test_data = [
+        # value, expected
+        (Result.OK(90), False),
+        (Result.OK(9.90), False),
+        (Result.OK("yeah"), False),
+        (Result.ERR(ValueError()), True),
+        (Result.ERR(Exception()), True),
+        (Result.ERR(TypeError("woo-hoo")), True),
+    ]
+
+    for value, expected in test_data:
+        assert is_err(value) == expected
+
+
+def test_is_ok_is_err_match_error():
+    """is_ok and is_err raise MatchError if value passed is not a Result and strict is True"""
+    test_data = [
+        90,
+        "Result.OK(9)",
+        90.0,
+        Option.SOME("yeah"),
+        None,
+        dict(h=90),
+        (let(int, h=60), Color(r=6, b=90, g=78)),
+    ]
+
+    for value in test_data:
+        with pytest.raises(MatchError):
+            _ = is_ok(value)
+
+        with pytest.raises(MatchError):
+            _ = is_err(value)
+
+        assert not is_ok(value, strict=False)
+        assert not is_err(value, strict=False)
+
+
 def test_if_some():
     """if_some only runs do when value is Option.SOME, else returns the Option.NONE"""
     test_data = [
@@ -133,3 +202,58 @@ def test_if_some_if_none_match_error():
 
         assert if_some(do, strict=False)(value) == value
         assert if_none(do, strict=False)(value) == value
+
+
+def test_is_some():
+    """is_some returns True value is Option.SOME, else False"""
+    test_data = [
+        # value, expected
+        (Option.SOME(90), True),
+        (Option.SOME(9.90), True),
+        (Option.SOME("yeah"), True),
+        (Option.NONE, False),
+        (Option.NONE, False),
+        (Option.NONE, False),
+    ]
+
+    for value, expected in test_data:
+        assert is_some(value) == expected
+
+
+def test_is_none():
+    """is_none returns True value is Option.NONE, else False"""
+    test_data = [
+        # value, expected
+        (Option.SOME(90), False),
+        (Option.SOME(9.90), False),
+        (Option.SOME("yeah"), False),
+        (Option.NONE, True),
+        (Option.NONE, True),
+        (Option.NONE, True),
+    ]
+
+    for value, expected in test_data:
+        assert is_none(value) == expected
+
+
+def test_is_some_is_none_match_error():
+    """is_some and is_none raise MatchError if value passed is not an Option and strict is True"""
+    test_data = [
+        90,
+        "Option.OK(9)",
+        90.0,
+        Result.OK("yeah"),
+        None,
+        dict(h=90),
+        (let(int, h=60), Color(r=6, b=90, g=78)),
+    ]
+
+    for value in test_data:
+        with pytest.raises(MatchError):
+            _ = is_some(value)
+
+        with pytest.raises(MatchError):
+            _ = is_none(value)
+
+        assert not is_some(value, strict=False)
+        assert not is_none(value, strict=False)
