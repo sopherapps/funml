@@ -29,7 +29,7 @@ from .data.monads import (
     is_some,
 )
 from .data.records import record
-from .data.lists import l
+from .data.lists import l, imap, ifilter, ireduce
 
 __all__ = [
     "let",
@@ -48,6 +48,9 @@ __all__ = [
     "is_none",
     "record",
     "l",
+    "imap",
+    "ifilter",
+    "ireduce",
     "errors",
     "types",
     "data",

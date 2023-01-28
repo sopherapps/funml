@@ -1,4 +1,4 @@
-from funml import l
+from funml import l, imap, ifilter, ireduce
 
 
 def test_list_creation():
@@ -25,28 +25,44 @@ def test_list_concatenation():
         assert list(l(*v1) + l(*v2)) == [*v1, *v2]
 
 
-def test_list_map():
-    """map transforms each element of the list by the given transform"""
+def test_imap():
+    """imap transforms each element of the list by the given transform"""
     test_data = [
-        ([2, 3, 5], lambda x: x**2, [4, 9, 25]),
-        (["foo", 6.0], lambda x: f"{x}", ["foo", "6.0"]),
-        ([True, -6.0, 7], lambda x: x > 0, [True, False, True]),
+        ([2, 3, 5], lambda x: x**2, l(4, 9, 25)),
+        (["foo", 6.0], lambda x: f"{x}", l("foo", "6.0")),
+        ([True, -6.0, 7], lambda x: x > 0, l(True, False, True)),
     ]
 
     for args, func, expected in test_data:
-        assert list(l(*args).map(func)) == expected
+        transform = imap(func)
+        assert transform(args) == expected
 
 
-def test_list_filter():
-    """filter returns only the items that fulfil a given test"""
+def test_ifilter():
+    """ifilter returns only the items that fulfil a given test"""
     test_data = [
-        ([2, 3, 5], lambda x: x % 2 != 0, [3, 5]),
-        (["foo", 6.0], lambda x: isinstance(x, str), ["foo"]),
-        ([True, -6.0, 7], lambda x: x > 0, [True, 7]),
+        ([2, 3, 5], lambda x: x % 2 != 0, l(3, 5)),
+        (["foo", 6.0], lambda x: isinstance(x, str), l("foo")),
+        ([True, -6.0, 7], lambda x: x > 0, l(True, 7)),
     ]
 
     for args, func, expected in test_data:
-        assert list(l(*args).filter(func)) == expected
+        sieve = ifilter(func)
+        assert sieve(args) == expected
+
+
+def test_ireduce():
+    """ireduce reduces a sequence to single value using the function and initial value"""
+    test_data = [
+        ([2, 3, 5], lambda x, y: x + y, 6, 16),
+        ([2, 3, 5], lambda x, y: x + y, None, 10),
+        (["foo", 6.0], lambda x, y: f"{x}, {y}", None, "foo, 6.0"),
+        (["foo", 6.0], lambda x, y: f"{x}; {y}", "list", "list; foo; 6.0"),
+    ]
+
+    for args, func, initial, expected in test_data:
+        merger = ireduce(func, initial)
+        assert merger(args) == expected
 
 
 def test_head():

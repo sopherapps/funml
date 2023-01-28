@@ -101,7 +101,8 @@ class Enum(types.MLType):
                 .case(6, do=lambda: Day.SUN(date_value))
         )()
 
-        day_enums = ml.l(*dates).map(to_day_enum)
+        day_enums_transform = ml.imap(to_day_enum)
+        day_enums = day_enums_transform(dates)
 
         print(day_enums)
         # prints [<Day.TUE: (datetime.date(200, 3, 4),)>, <Day.FRI: (datetime.date(2009, 1, 16),)>,\
