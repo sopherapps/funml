@@ -9,7 +9,7 @@ from .. import match
 from ..types import Assignment, Expression, to_expn, Operation
 
 
-def if_ok(do: Union[Expression, Assignment, Callable, Any]) -> Expression:
+def if_ok(do: Union[Expression, Assignment, Callable, Any], strict=True) -> Expression:
     """Does the given operation if value passed to resulting expression is Result.OK.
 
     If the value is Result.ERR, it just returns the Result.ERR without
@@ -17,23 +17,28 @@ def if_ok(do: Union[Expression, Assignment, Callable, Any]) -> Expression:
 
     Args:
         do: The expression, function, assignment to run or value to return when Result.OK
+        strict: if only Results should be expected
 
     Returns:
         An expression to run the `do` operation when value passed to expression is Result.OK
         or to just return the Result.ERR
 
     Raises:
-        funml.errors.MatchError: value provided was not a Result
+        funml.errors.MatchError: value provided was not a Result and `strict` is True
     """
-    op = Operation(
+    routine = (
         match()
         .case(Result.OK(Any), do=to_expn(do))
         .case(Result.ERR(Exception), do=lambda v: Result.ERR(v))
     )
-    return Expression(op)
+
+    if not strict:
+        routine = routine.case(Any, do=lambda v: v)
+
+    return Expression(Operation(routine))
 
 
-def if_err(do: Union[Expression, Assignment, Callable, Any]) -> Expression:
+def if_err(do: Union[Expression, Assignment, Callable, Any], strict=True) -> Expression:
     """Does the given operation if value passed to resulting expression is Result.ERR.
 
     If the value is Result.OK, it just returns the Result.OK without
@@ -41,23 +46,30 @@ def if_err(do: Union[Expression, Assignment, Callable, Any]) -> Expression:
 
     Args:
         do: The expression, function, assignment to run or value to return when Result.ERR
+        strict: if only Results should be expected
 
     Returns:
         An expression to run the `do` operation when value passed to expression is Result.ERR
         or to just return the Result.OK
 
     Raises:
-        funml.errors.MatchError: value provided was not a Result
+        funml.errors.MatchError: value provided was not a Result if strict is True
     """
-    op = Operation(
+    routine = (
         match()
         .case(Result.OK(Any), do=lambda v: Result.OK(v))
         .case(Result.ERR(Exception), do=to_expn(do))
     )
-    return Expression(op)
+
+    if not strict:
+        routine = routine.case(Any, do=lambda v: v)
+
+    return Expression(Operation(routine))
 
 
-def if_some(do: Union[Expression, Assignment, Callable, Any]) -> Expression:
+def if_some(
+    do: Union[Expression, Assignment, Callable, Any], strict=True
+) -> Expression:
     """Does the given operation if value passed to resulting expression is Option.SOME.
 
     If the value is Result.NONE, it just returns the Result.NONE without
@@ -65,23 +77,30 @@ def if_some(do: Union[Expression, Assignment, Callable, Any]) -> Expression:
 
     Args:
         do: The expression, function, assignment to run or value to return when Option.SOME
+        strict: if only Options should be expected
 
     Returns:
         An expression to run the `do` operation when value passed to expression is Option.SOME
         or to just return the Option.NONE
 
     Raises:
-        funml.errors.MatchError: value provided was not an Option
+        funml.errors.MatchError: value provided was not an Option if strict is True
     """
-    op = Operation(
+    routine = (
         match()
         .case(Option.SOME(Any), do=to_expn(do))
         .case(Option.NONE, do=lambda: Option.NONE)
     )
-    return Expression(op)
+
+    if not strict:
+        routine = routine.case(Any, do=lambda v: v)
+
+    return Expression(Operation(routine))
 
 
-def if_none(do: Union[Expression, Assignment, Callable, Any]) -> Expression:
+def if_none(
+    do: Union[Expression, Assignment, Callable, Any], strict=True
+) -> Expression:
     """Does the given operation if value passed to resulting expression is Option.NONE.
 
     If the value is Option.SOME, it just returns the Option.SOME without
@@ -89,20 +108,25 @@ def if_none(do: Union[Expression, Assignment, Callable, Any]) -> Expression:
 
     Args:
         do: The expression, function, assignment to run or value to return when Option.NONE
+        strict: if only Options should be expected
 
     Returns:
         An expression to run the `do` operation when value passed to expression is Option.NONE
         or to just return the Option.SOME
 
     Raises:
-        funml.errors.MatchError: value provided was not an Option
+        funml.errors.MatchError: value provided was not an Option if strict is True
     """
-    op = Operation(
+    routine = (
         match()
         .case(Option.SOME(Any), do=lambda v: Option.SOME(v))
         .case(Option.NONE, do=to_expn(do))
     )
-    return Expression(op)
+
+    if not strict:
+        routine = routine.case(Any, do=lambda v: v)
+
+    return Expression(Operation(routine))
 
 
 class Option(Enum):

@@ -50,7 +50,7 @@ def test_if_err():
 
 
 def test_if_ok_if_err_match_error():
-    """if_ok and if_err raise MatchError if value passed is not a Result"""
+    """if_ok and if_err raise MatchError if value passed is not a Result and strict is True"""
     test_data = [
         # do/return, value
         ("excellent", 90),
@@ -69,6 +69,9 @@ def test_if_ok_if_err_match_error():
 
         with pytest.raises(MatchError):
             _ = if_err(do)(value)
+
+        assert if_ok(do, strict=False)(value) == value
+        assert if_err(do, strict=False)(value) == value
 
 
 def test_if_some():
@@ -108,7 +111,7 @@ def test_if_none():
 
 
 def test_if_some_if_none_match_error():
-    """if_some and if_none raise MatchError if value passed is not an Option"""
+    """if_some and if_none raise MatchError if value passed is not an Option and strict is True"""
     test_data = [
         # do/return, value
         ("excellent", 90),
@@ -127,3 +130,6 @@ def test_if_some_if_none_match_error():
 
         with pytest.raises(MatchError):
             _ = if_none(do)(value)
+
+        assert if_some(do, strict=False)(value) == value
+        assert if_none(do, strict=False)(value) == value

@@ -40,9 +40,12 @@ def generate_random_string() -> str:
 def is_equal_or_of_type(val: Any, type_or_val: Any) -> bool:
     """Checks if the given value is equal or of the type given
 
-    Ellipsis (...) signifies any value
+    Ellipsis (...) or Any signifies any value
     """
-    if type_or_val is ...:
+    if type_or_val in (
+        ...,
+        Any,
+    ):
         return True
 
     if val == type_or_val:
