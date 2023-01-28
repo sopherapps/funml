@@ -30,6 +30,7 @@ from .data.monads import (
 )
 from .data.records import record
 from .data.lists import l, imap, ifilter, ireduce
+from .pipeline import execute
 
 __all__ = [
     "let",
@@ -54,4 +55,5 @@ __all__ = [
     "errors",
     "types",
     "data",
+    "execute",
 ]
