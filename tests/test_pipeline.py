@@ -27,3 +27,8 @@ def test_execute_rshift_error():
 
     with pytest.raises(NotImplementedError):
         execute() >> val("hey") >> (lambda x: f"{x} you") >> (lambda g: f"{g}, John")
+
+
+def test_execute_are_pure_by_default():
+    """execute is a pure function by default"""
+    assert False

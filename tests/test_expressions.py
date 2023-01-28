@@ -29,3 +29,39 @@ def test_val_piping():
     v = val(900) >> (lambda x: x + 10) >> (lambda y: y * 20) >> str
 
     assert v() == "18200"
+
+
+def test_expressions_pure_by_default():
+    """expressions have no hidden side effects by default"""
+    accum_factrl = lambda v, accum: accum if v <= 0 else accum_factrl(v - 1, v * accum)
+    pure_factorial = lambda v: accum_factrl(v, 1)
+
+    unit_expn = val(lambda v: v)
+    if_else_expn = val(
+        lambda check=unit_expn, do=unit_expn, else_do=unit_expn: lambda *args, **kwargs: (
+            do(*args, **kwargs) if check(*args, **kwargs) else else_do(*args, **kwargs)
+        )()
+    )
+
+    tester = lambda v: v <= 0
+    accum_factrl_expn = lambda v, accum: if_else_expn(
+        check=tester, do=val(accum), else_do=accum_factrl_expn(v - 1, v * accum)
+    )
+    factorial_expn = val(lambda v: accum_factrl_expn(v, 1))
+
+    test_data = [
+        (1, 1),
+        (2, 2),
+        (3, 6),
+        (4, 24),
+        (5, 120),
+        (6, 720),
+        (7, 5040),
+        (8, 40320),
+        (9, 362880),
+        (10, 3628800),
+    ]
+
+    for value, expected in test_data:
+        assert pure_factorial(value) == expected
+        assert factorial_expn(value) == expected
