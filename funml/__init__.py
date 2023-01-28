@@ -16,7 +16,7 @@ Provides:
 from .pattern_match import match
 from .assignments import let, val
 from .data.enum import Enum
-from .data.monads import Option, Result
+from .data.monads import Option, Result, if_ok, if_err, if_none, if_some
 from .data.records import record
 from .data.lists import l
 
@@ -27,6 +27,10 @@ __all__ = [
     "Enum",
     "Option",
     "Result",
+    "if_ok",
+    "if_err",
+    "if_some",
+    "if_none",
     "record",
     "l",
     "errors",

@@ -292,7 +292,7 @@ def _get_func_signature(func: Callable):
         return signature(func.__call__)
 
 
-def _to_expn(v: Union["Expression", "Assignment", Callable, Any]) -> "Expression":
+def to_expn(v: Union["Expression", "Assignment", Callable, Any]) -> "Expression":
     """Converts a Callable or Expression into an Expression"""
     if isinstance(v, Expression):
         return v
@@ -312,8 +312,8 @@ def _append_expn(
     other: Union["Expression", "Assignment", Callable, Any],
 ):
     """Returns a new combined Expression where the current expression runs before the passed expression"""
-    other = _to_expn(other)
-    first = _to_expn(first)
+    other = to_expn(other)
+    first = to_expn(first)
 
     other.append_prev_expns(*first._queue, first)
     first.clear_prev_expns()

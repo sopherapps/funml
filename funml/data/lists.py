@@ -33,8 +33,7 @@ Typical Usage:
 """
 from typing import Any, Optional, Callable, List, Tuple, Union
 
-from funml import types
-from funml.utils import is_equal_or_of_type
+from funml import types, utils
 
 
 def l(*args: Any) -> "IList":
@@ -291,7 +290,7 @@ class IList(types.MLType):
         Args:
             other: the value to compare with current list.
         """
-        return self._self_list == other._self_list
+        return utils.equals(self._self_list, other._self_list)
 
     def __str__(self):
         """Generates a readable presentation of the list."""
@@ -348,7 +347,7 @@ def _lists_match(schema: List[Any], actual: List[Any]):
         return False
 
     for type_or_val, val in zip(schema, actual):
-        if not is_equal_or_of_type(val, type_or_val=type_or_val):
+        if not utils.is_equal_or_of_type(val, type_or_val=type_or_val):
             return False
 
     return True

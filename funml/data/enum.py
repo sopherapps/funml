@@ -116,10 +116,13 @@ class Enum(types.MLType):
 
     def __init_subclass__(cls, **kwargs):
         """Creating a new Enum"""
-        cls.__slots__ = []
+        slots = []
+
         for k, v in _get_cls_attrs(cls).items():
             cls.__add_variant(k, v)
-            cls.__slots__.append(k)
+            slots.append(k)
+
+        cls.__slots__ = slots
 
     def __init__(self, *args: Union[Any, Dict[str, Any], int]):
         if not _is_valid(args, self.signature):
@@ -203,7 +206,7 @@ class Enum(types.MLType):
         return (
             self.__class__ == other.__class__
             and self._name == other._name
-            and self._value == other._value
+            and utils.equals(self._value, other._value)
         )
 
     def __str__(self):
