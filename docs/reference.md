@@ -9,12 +9,10 @@ Types
 ::: funml.types
     options:
         members:
-            - Assignment
             - Expression
             - MatchExpression
             - MLType
             - Operation
-            - Context
 
 Lists
 --

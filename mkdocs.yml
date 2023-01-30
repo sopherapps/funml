@@ -28,7 +28,8 @@ repo_name: sopherapps/funml
 repo_url: https://github.com/sopherapps/funml
 
 nav:
-  - Funml: index.md
+  - FunML: index.md
+  - tutorial.md
   - reference.md
   - change-log.md
 

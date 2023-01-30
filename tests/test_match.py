@@ -2,7 +2,7 @@ import dataclasses
 from functools import reduce
 from typing import Any
 
-from funml import Option, match, record, l, imap, ireduce
+from funml import Option, match, record, l, imap, ireduce, val
 
 
 def test_match_any_type():
@@ -175,3 +175,56 @@ def test_match_piping():
         )
 
         assert value() == expected
+
+
+def test_match_are_pure_by_default():
+    """Match expressions are pure by default"""
+    pure_unit = lambda v, *args, **kwargs: v
+    if_else = lambda check=pure_unit, do=pure_unit, else_do=pure_unit: (
+        lambda *args, **kwargs: do(*args, **kwargs)
+        if (check(*args, **kwargs))
+        else else_do(*args, **kwargs)
+    )
+
+    unit_expn = val(pure_unit)
+    if_else_expn = val(
+        lambda check_expn=unit_expn, do_expn=unit_expn, else_do_expn=unit_expn: lambda *args, **kwargs: (
+            match(check_expn(*args, **kwargs))
+            .case(True, do=lambda: do_expn(*args, **kwargs))
+            .case(False, do=lambda: else_do_expn(*args, **kwargs))
+        )()
+    )
+
+    is_num = lambda v: isinstance(
+        v,
+        (
+            int,
+            float,
+        ),
+    )
+    is_str = lambda v: isinstance(v, str)
+
+    to_str = str
+    to_num = int
+
+    to_str_expn = val(to_str)
+    to_num_expn = val(to_num)
+
+    is_num_expn = val(is_num)
+    is_str_expn = val(is_str)
+
+    test_data = [
+        # check, do, else_do, value, expected
+        (is_num, to_str, to_num, 89, "89"),
+        (is_num, to_str, to_num, "89", 89),
+        (is_num_expn, to_str_expn, to_num_expn, 89, "89"),
+        (is_num_expn, to_str_expn, to_num_expn, "89", 89),
+        (is_str_expn, to_num_expn, to_str, "89", 89),
+    ]
+
+    for check, do, else_do, value, expected in test_data:
+        assert if_else(check=check, do=do, else_do=else_do)(value) == expected
+        assert (
+            if_else_expn(check_expn=check, do_expn=do, else_do_expn=else_do)(value)
+            == expected
+        )

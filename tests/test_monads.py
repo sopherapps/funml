@@ -2,7 +2,6 @@ import pytest
 
 from funml import (
     Result,
-    let,
     if_ok,
     Option,
     record,
@@ -33,11 +32,9 @@ def test_if_ok():
         (val("excellent"), Result.OK(90), "excellent"),
         (lambda v: v * 20, Result.OK(9), 180),
         (val(lambda v: v * 20), Result.OK(9), 180),
-        (let(int, h=60), Result.OK("yeah"), {"h": 60}),
         ("excellent", Result.ERR(ValueError()), Result.ERR(ValueError())),
         (val("excellent"), Result.ERR(ValueError()), Result.ERR(ValueError())),
         (lambda v: v * 20, Result.ERR(Exception()), Result.ERR(Exception())),
-        (let(int, h=60), Result.ERR(TypeError()), Result.ERR(TypeError())),
     ]
 
     for do, value, expected in test_data:
@@ -52,11 +49,9 @@ def test_if_err():
         (val("excellent"), Result.ERR(ValueError()), "excellent"),
         (lambda v: str(v), Result.ERR(Exception("error")), "error"),
         (val(lambda v: str(v)), Result.ERR(Exception("error")), "error"),
-        (let(int, h=60), Result.ERR(TypeError()), {"h": 60}),
         ("excellent", Result.OK(90), Result.OK(90)),
         (lambda v: v * 20, Result.OK(9), Result.OK(9)),
         (val(lambda v: v * 20), Result.OK(9), Result.OK(9)),
-        (let(int, h=60), Result.OK("yeah"), Result.OK("yeah")),
     ]
 
     for do, value, expected in test_data:
@@ -70,11 +65,9 @@ def test_if_ok_if_err_match_error():
         ("excellent", 90),
         (lambda v: v * 20, "Result.OK(9)"),
         (val(lambda v: v * 20), "Result.OK(9)"),
-        (let(int, h=60), Option.SOME("yeah")),
         ("excellent", None),
         (lambda v: v * 20, dict(h=90)),
         (val(lambda v: v * 20), dict(h=90)),
-        (let(int, h=60), Color(r=6, b=90, g=78)),
     ]
 
     for do, value in test_data:
@@ -129,7 +122,6 @@ def test_is_ok_is_err_match_error():
         Option.SOME("yeah"),
         None,
         dict(h=90),
-        (let(int, h=60), Color(r=6, b=90, g=78)),
     ]
 
     for value in test_data:
@@ -150,11 +142,9 @@ def test_if_some():
         ("excellent", Option.SOME(90), "excellent"),
         (lambda v: v * 20, Option.SOME(9), 180),
         (val(lambda v: v * 20), Option.SOME(9), 180),
-        (let(int, h=60), Option.SOME("yeah"), {"h": 60}),
         ("excellent", Option.NONE, Option.NONE),
         (lambda v: v * 20, Option.NONE, Option.NONE),
         (val(lambda v: v * 20), Option.NONE, Option.NONE),
-        (let(int, h=60), Option.NONE, Option.NONE),
     ]
 
     for do, value, expected in test_data:
@@ -168,11 +158,9 @@ def test_if_none():
         ("excellent", Option.NONE, "excellent"),
         (lambda v: 180, Option.NONE, 180),
         (val(lambda v: 180), Option.NONE, 180),
-        (let(int, h=60), Option.NONE, {"h": 60}),
         ("excellent", Option.SOME(90), Option.SOME(90)),
         (lambda v: v * 20, Option.SOME(9), Option.SOME(9)),
         (val(lambda v: v * 20), Option.SOME(9), Option.SOME(9)),
-        (let(int, h=60), Option.SOME("yeah"), Option.SOME("yeah")),
     ]
 
     for do, value, expected in test_data:
@@ -186,11 +174,9 @@ def test_if_some_if_none_match_error():
         ("excellent", 90),
         (lambda v: v * 20, "Option.SOME(9)"),
         (val(lambda v: v * 20), "Option.SOME(9)"),
-        (let(int, h=60), Result.OK("yeah")),
         ("excellent", None),
         (lambda v: v * 20, dict(h=90)),
         (val(lambda v: v * 20), dict(h=90)),
-        (let(int, h=60), Color(r=6, b=90, g=78)),
     ]
 
     for do, value in test_data:
@@ -245,7 +231,6 @@ def test_is_some_is_none_match_error():
         Result.OK("yeah"),
         None,
         dict(h=90),
-        (let(int, h=60), Color(r=6, b=90, g=78)),
     ]
 
     for value in test_data:

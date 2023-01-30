@@ -14,7 +14,7 @@ Provides:
    Pattern matching helps handle both scenarios.
 """
 from .pattern_match import match
-from .assignments import let, val
+from .expressions import val
 from .data.enum import Enum
 from .data.monads import (
     Option,
@@ -33,7 +33,6 @@ from .data.lists import l, imap, ifilter, ireduce
 from .pipeline import execute
 
 __all__ = [
-    "let",
     "match",
     "val",
     "Enum",
