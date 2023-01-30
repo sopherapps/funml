@@ -1,100 +1,37 @@
+from copy import copy
 from datetime import date
 
 import funml as ml
+
+
+class Date(ml.Enum):
+    January = date
+    February = date
+    March = date
+    April = date
+    May = date
+    June = date
+    July = date
+    August = date
+    September = date
+    October = date
+    November = date
+    December = date
+
+
+@ml.record
+class Color:
+    r: int
+    g: int
+    b: int
+    a: int
 
 
 def main():
     """Main program"""
 
     """
-    Data Types:
-    ===
-
-    Using the `Enum` base class and the 
-    `@record` decorator, one can create custom
-    data types in form of Enums and records respectively.
-    """
-
-    class Date(ml.Enum):
-        January = date
-        February = date
-        March = date
-        April = date
-        May = date
-        June = date
-        July = date
-        August = date
-        September = date
-        October = date
-        November = date
-        December = date
-
-    @ml.record
-    class Color:
-        r: int
-        g: int
-        b: int
-        a: int
-
-    """
-    Expressions
-    ===
-
-    The main construct in funml is the expression.
-    As long as anything is an expression, it can be piped 
-    i.e. added to a pipeline.
-
-    Anything can be turned into an expression using
-    `funml.val`.
-    functions, static values, variables, name it.
-
-    Expressions are the building blocks for more expressions.
-    Combining multiple expressions creates new expressions
-
-    It may have:
-
-    - `ml.Result`, `ml.Option` and their helpers like `ml.is_ok`, `ml.if_ok`
-    - `IList` and its helpers `ireduce`, `imap`, `ifilter` etc.
-    - `Enum`'s, `Record`'s
-    - pattern matching with `ml.match().case(...)`
-    - lambda functions wrapped in `ml.val` to make them expressions
-    - Even piping with the `>>` to move data from LEFT to RIGHT through a number of expressions
-    etc.
-    """
-
-    """
     Primitive Expressions
-    ---
-
-    We can start with a few primitive expressions.
-    These we will use later to build more complex expressions.
-
-    A typical primitive expression is `ml.val(<lambda function>)`
-    But one can also wrap functions/classes from external modules
-
-    e.g. 
-    MlDbConnection = ml.val(DbConnection)
-    # then later, use it as though it was a funml expression.
-    conn = (
-            ml.val(config) 
-            >> MlDbConnection
-            >> ml.execute())
-
-    We have some builtin primitive expressions like
-    - ml.val
-    - ml.match
-    - ml.execute
-    - ml.ireduce
-    - ml.ifilter
-    - ml.imap
-    - ml.if_ok
-    - ml.is_ok
-    - ml.if_err
-    - ml.is_err
-    - ml.if_some
-    - ml.is_some
-    - ml.if_none
-    - ml.is_none
     """
     unit = ml.val(lambda v: v)
     is_even = ml.val(lambda v: v % 2 == 0)
@@ -113,28 +50,7 @@ def main():
     )
 
     """
-    Higher-level Expressions
-    ---
-
-    Here we combine the primitive expressions into more
-    complex ones using:
-
-    - normal function calls 
-      e.g. `if_else(some_stuff)` where `if_else` is a primitive expression
-    - pipes `>>`
-      pipes let one start with data then define the steps that operate on the
-      data.
-      e.g. `output = records >> remove_nulls >> parse_json >> ml.execute()`
-    - chaining primitives that have methods on their outputs that return expressions.
-      e.g. `output = ml.match(data).case(1, do=...).case(2, do=...).case(3, ...)`
-
-    We can combine these complex expressions into even more complex ones
-    to infinite complexity.
-
-    That is the main thing about functional programming i.e.
-    composing simpler functions into more complex functions 
-    to an indefinite level of complexity BUT while keeping the
-    complex functions readable and predictable (pure)
+    High Order Expressions
     """
     accum_factorial = if_else(
         check=is_zero_or_less,
@@ -192,21 +108,6 @@ def main():
 
     """
     Data
-    ===
-
-    We have a number of data types that are work well with ml
-
-        - IList: an immutable list, with pattern matching enabled
-        - Enum: an enumerable data type, with pattern matching enabled
-        - Record: a record-like data type, with pattern matching enabled
-
-    Using our Higher level expressions (and lower level ones if they can),
-    we operate on the data.
-
-    In order to add data variables to pipelines, we turn them into expressions
-    using `ml.val`
-
-    e.g. `ml.val(90)` becomes an expression that evaluates to `lambda: 90`
     """
     dates = [
         date(200, 3, 4),
@@ -223,19 +124,7 @@ def main():
     blue = Color(r=0, g=0, b=255, a=1)
 
     """
-    Execution
-    ===
-
-    To mimic pipelines, we use
-    `>>` as pipe to move data from left to right
-    and `ml.execute()` to execute the pipeline and return 
-    the results
-
-    Don't forget to call `ml.execute()` at the end of the
-    pipeline or else you will get just a callable object.
-
-    It is more like not calling `await` on a function that
-    returns an `Awaitable`.
+    Pipeline Creation and Execution
     """
     dates_as_enums = dates >> ml.imap(to_date_enum) >> ml.execute()
     print(f"\ndates as enums: {dates_as_enums}")
@@ -247,13 +136,27 @@ def main():
 
     print(f"\ncube of 5: {cube(5)}")
 
+    even_nums_pipeline = nums >> ml.ifilter(is_even)
+    # here `even_nums_pipeline` is a `Pipeline` instance
+    print(even_nums_pipeline)
+
+    factorials_list = (
+        copy(even_nums_pipeline)
+        >> ml.imap(lambda v: f"factorial for {v}: {factorial(v)}")
+        >> ml.execute()
+    )
+    # we created a new pipeline by coping the previous one
+    # otherwise we would be mutating the old pipeline.
+    # Calling ml.execute(), we get an actual iterable of strings
+    print(factorials_list)
+
     factorials_str = (
-        nums
-        >> ml.ifilter(is_even)
+        even_nums_pipeline
         >> ml.imap(lambda v: f"factorial for {v}: {factorial(v)}")
         >> ml.ireduce(lambda x, y: f"{x}\n{y}")
         >> ml.execute()
     )
+    # here after calling ml.execute(), we get one string as output
     print(factorials_str)
 
     print(f"blue: {blue}")

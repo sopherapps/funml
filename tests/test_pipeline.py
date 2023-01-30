@@ -1,8 +1,9 @@
+from copy import copy
 from datetime import date
 
 import pytest
 
-from funml import val, execute, match, ireduce, l, imap
+from funml import val, execute, ireduce, imap, l, ifilter
 
 
 def test_execute():
@@ -64,3 +65,28 @@ def test_pipelines_can_be_combined():
         new_pipeline = data >> sum_of_months_pipeline
         got = new_pipeline >> execute()
         assert got == expected
+
+
+def test_pipeline_copy():
+    """copy copies the pipeline's state and returns a new pipeline."""
+    is_even = val(lambda v: v % 2 == 0)
+    minus_one = val(lambda v: v - 1)
+    square = val(lambda v: v**2)
+
+    test_data = [
+        (l(7, 8, 6, 3), l(7, 5), "sq 8: 64\nsq 6: 36"),
+        (l(4, 2, 6, 3), l(3, 1, 5), "sq 4: 16\nsq 2: 4\nsq 6: 36"),
+    ]
+
+    for nums, first_expected, second_expected in test_data:
+        even_nums_pipeline = val(nums) >> ifilter(is_even)
+        nums_less_1_list = copy(even_nums_pipeline) >> imap(minus_one) >> execute()
+        assert list(nums_less_1_list) == list(first_expected)
+
+        squares_str = (
+            even_nums_pipeline
+            >> imap(lambda v: f"sq {v}: {square(v)}")
+            >> ireduce(lambda x, y: f"{x}\n{y}")
+            >> execute()
+        )
+        assert squares_str == second_expected

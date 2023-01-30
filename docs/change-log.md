@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2023-01-30
+
+### Added
+
+- Added `Pipeline`'s to move all piping to them
+
+### Changed
+
+- Removed `Context`
+- Removed `let` and `Assignment`'s as these had side effects
+
+### Fixed
+
+- Made expressions pure to avoid unexpected outcomes.
+
 ## [0.2.0] - 2023-01-28
 
 ### Added

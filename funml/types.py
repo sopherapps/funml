@@ -88,6 +88,13 @@ class Pipeline:
 
         return output
 
+    def __copy__(self):
+        """Helps call copy on a pipeline"""
+        new_pipeline = Pipeline()
+        new_pipeline._queue += self._queue
+        new_pipeline._is_terminated = self._is_terminated
+        return new_pipeline
+
     def __update_queue(self, nxt):
         """Appends a pipeline or an expression to the queue."""
         if self._is_terminated:

@@ -66,50 +66,14 @@ In order to ensure functions do not mutate their inputs, the data used once init
 - [python 3.7+](https://docs.python.org/)
 
 ### Installation
+
+Install funml with your package manager
+
 <div class="termy">
 
 ```console
 $ pip install funml
 
 ---> 100%
-```
-</div>
-
-### Example
-
-#### Create a module
-
-- Create a file `main.py` with:
-
-```Python
-{!../docs_src/index/main.py!}
-```
-
-#### Run it
-
-Run the example with:
-
-<div class="termy">
-
-```console
-$ python main.py
-
-dates as enums: [<Date.March: (datetime.date(200, 3, 4),)>, <Date.January: (datetime.date(2009, 1, 16),)>, <Date.December: (datetime.date(1993, 12, 29),)>, <Date.October: (datetime.date(2004, 10, 13),)>, <Date.September: (datetime.date(2020, 9, 5),)>, <Date.May: (datetime.date(2004, 5, 7),)>, <Date.August: (datetime.date(1228, 8, 18),)>]
-
-first date enum: <Date.March: (datetime.date(200, 3, 4),)>
-
-months of dates as str:
-[MAR, JAN, DEC, OCT, SEP, MAY, AUG]
-
-cube of 5: 125
-factorial for 12: 479001600
-factorial for 8: 40320
-factorial for 6: 720
-blue: {'r': 0, 'g': 0, 'b': 255, 'a': 1}
-
-after multiplication:
-[<Result.OK: (6,)>, <Result.ERR: (TypeError("expected numbers, got <class 'str'>, <class 'int'>"),)>, <Result.ERR: (TypeError("expected numbers, got <class 'int'>, <class 'str'>"),)>, <Result.OK: (48.599999999999994,)>]
-
-data as options: [<Option.SOME: (6,)>, <Option.NONE: ('NONE',)>, <Option.NONE: ('NONE',)>, <Option.SOME: (48.599999999999994,)>]
 ```
 </div>
