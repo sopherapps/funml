@@ -98,11 +98,19 @@ def main():
     """
     unit = ml.val(lambda v: v)
     is_even = ml.val(lambda v: v % 2 == 0)
-    mul = ml.val(lambda x, y: x * y)
+    mul = ml.val(lambda args: args[0] * args[1])
     superscript = ml.val(lambda num, power: num**power)
     get_month = ml.val(lambda value: value.month)
     is_num = ml.val(lambda v: isinstance(v, (int, float)))
     is_exp = ml.val(lambda v: isinstance(v, BaseException))
+    is_zero_or_less = ml.val(lambda v, *args: v <= 0)
+    if_else = lambda check=unit, do=unit, else_do=unit: ml.val(
+        lambda *args, **kwargs: (
+            ml.match(check(*args, **kwargs))
+            .case(True, do=lambda: do(*args, **kwargs))
+            .case(False, do=lambda: else_do(*args, **kwargs))
+        )()
+    )
 
     """
     Higher-level Expressions
@@ -127,30 +135,23 @@ def main():
     composing simpler functions into more complex functions 
     to an indefinite level of complexity BUT while keeping the
     complex functions readable and predictable (pure)
-
-    NOTE:
-    ---
-    Avoid calling expressions recursively. Each expression has state
-    and unexpected things happen when hidden state is maintained during
-    recursion.
     """
-    accum_factorial = ml.val(
-        lambda num, accum: (
-            accum if num <= 0 else accum_factorial(num - 1, num * accum)
-        )
+    accum_factorial = if_else(
+        check=is_zero_or_less,
+        do=lambda v, ac: ac,
+        else_do=lambda v, ac: accum_factorial(v - 1, v * ac),
     )
     cube = ml.val(lambda v: superscript(v, 3))
     factorial = ml.val(lambda x: accum_factorial(x, 1))
     get_item_types = ml.ireduce(lambda x, y: f"{type(x)}, {type(y)}")
-    num_type_err = ml.val(
-        lambda *args: TypeError(f"expected numbers, got {get_item_types(args)}")
+    nums_type_err = ml.val(
+        lambda args: TypeError(f"expected numbers, got {get_item_types(args)}")
     )
     is_seq_of_nums = ml.ireduce(lambda x, y: x and is_num(y), True)
     to_result = ml.val(lambda v: ml.Result.ERR(v) if is_exp(v) else ml.Result.OK(v))
 
     try_multiply = (
-        ml.val(lambda x, y: num_type_err(x, y) if is_seq_of_nums([x, y]) else mul(x, y))
-        >> to_result
+        if_else(check=is_seq_of_nums, do=mul, else_do=nums_type_err) >> to_result
     )
 
     result_to_option = ml.if_ok(ml.Option.SOME, strict=False) >> ml.if_err(
@@ -257,7 +258,7 @@ def main():
 
     print(f"blue: {blue}")
 
-    data = ml.val(data) >> ml.imap(lambda x: try_multiply(*x)) >> ml.execute()
+    data = ml.val(data) >> ml.imap(try_multiply) >> ml.execute()
     print(f"\nafter multiplication:\n{data}")
 
     data_as_options = ml.val(data) >> ml.imap(result_to_option) >> ml.execute()

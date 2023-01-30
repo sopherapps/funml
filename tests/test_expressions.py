@@ -1,3 +1,5 @@
+from typing import Callable, Any
+
 from funml import val
 
 
@@ -31,21 +33,32 @@ def test_val_piping():
     assert v() == "18200"
 
 
-def test_expressions_pure_by_default():
-    """expressions have no hidden side effects by default"""
-    accum_factrl = lambda v, accum: accum if v <= 0 else accum_factrl(v - 1, v * accum)
+def test_expressions_are_pure():
+    """expressions have no hidden side effects"""
+    unit = lambda v: v
+    tester = lambda v, *args: v <= 0
+    if_else = lambda check=unit, do=unit, else_do=unit: lambda *args, **kwargs: (
+        do(*args, **kwargs) if check(*args, **kwargs) else else_do(*args, **kwargs)
+    )
+
+    accum_factrl = if_else(
+        check=tester,
+        do=lambda v, accum: accum,
+        else_do=lambda v, accum: accum_factrl(v - 1, v * accum),
+    )
     pure_factorial = lambda v: accum_factrl(v, 1)
 
     unit_expn = val(lambda v: v)
     if_else_expn = val(
         lambda check=unit_expn, do=unit_expn, else_do=unit_expn: lambda *args, **kwargs: (
             do(*args, **kwargs) if check(*args, **kwargs) else else_do(*args, **kwargs)
-        )()
+        )
     )
 
-    tester = lambda v: v <= 0
-    accum_factrl_expn = lambda v, accum: if_else_expn(
-        check=tester, do=val(accum), else_do=accum_factrl_expn(v - 1, v * accum)
+    accum_factrl_expn = if_else_expn(
+        check=val(tester),
+        do=val(lambda v, accum: accum),
+        else_do=val(lambda v, accum: accum_factrl_expn(v - 1, v * accum)),
     )
     factorial_expn = val(lambda v: accum_factrl_expn(v, 1))
 

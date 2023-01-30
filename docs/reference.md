@@ -13,7 +13,6 @@ Types
             - MatchExpression
             - MLType
             - Operation
-            - Context
 
 Lists
 --

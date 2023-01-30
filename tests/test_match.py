@@ -188,10 +188,10 @@ def test_match_are_pure_by_default():
 
     unit_expn = val(pure_unit)
     if_else_expn = val(
-        lambda check=unit_expn, do=unit_expn, else_do=unit_expn: lambda *args, **kwargs: (
-            match(check(*args, **kwargs))
-            .case(True, do=do(*args, **kwargs))
-            .case(False, do=else_do(*args, **kwargs))
+        lambda check_expn=unit_expn, do_expn=unit_expn, else_do_expn=unit_expn: lambda *args, **kwargs: (
+            match(check_expn(*args, **kwargs))
+            .case(True, do=lambda: do_expn(*args, **kwargs))
+            .case(False, do=lambda: else_do_expn(*args, **kwargs))
         )()
     )
 
@@ -224,4 +224,7 @@ def test_match_are_pure_by_default():
 
     for check, do, else_do, value, expected in test_data:
         assert if_else(check=check, do=do, else_do=else_do)(value) == expected
-        assert if_else_expn(check=check, do=do, else_do=else_do)(value) == expected
+        assert (
+            if_else_expn(check_expn=check, do_expn=do, else_do_expn=else_do)(value)
+            == expected
+        )
