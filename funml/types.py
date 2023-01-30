@@ -6,12 +6,6 @@ from funml import errors
 from funml.utils import is_equal_or_of_type
 
 
-class Context(dict):
-    """The context map containing variables in scope."""
-
-    pass
-
-
 class MLType:
     """An ML-enabled type, that can easily be used in pattern matching, piping etc.
 
@@ -60,7 +54,6 @@ class Expression:
     #     factorial = ml.val(lambda x: accum_factorial(x, 1))
     def __init__(self, f: Optional["Operation"] = None):
         self._f = f if f is not None else Operation(lambda x, *args, **kwargs: x)
-        self._context: "Context" = Context()
         self._queue: List[Expression] = []
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
@@ -75,13 +68,11 @@ class Expression:
         """
         prev_output = self._run_prev_expns(*args, **kwargs)
 
-        if isinstance(prev_output, Context):
-            self._context.update(prev_output)
-        elif prev_output is not None:
+        if prev_output is not None:
             # make sure piped expressions only consume previous outputs args, and kwargs
-            return self._f(prev_output, **self._context, **kwargs)
+            return self._f(prev_output, **kwargs)
 
-        return self._f(*args, **self._context, **kwargs)
+        return self._f(*args, **kwargs)
 
     def __rshift__(self, nxt: Union["Expression", Callable]):
         """This makes piping using the '>>' symbol possible.
@@ -100,7 +91,7 @@ class Expression:
 
         return merged_expn
 
-    def _run_prev_expns(self, *args: Any, **kwargs: Any) -> Union["Context", Any]:
+    def _run_prev_expns(self, *args: Any, **kwargs: Any) -> Any:
         """Runs all the previous expressions, returning the final output.
 
         In order to have expressions piped, all expressions are queued in the
@@ -119,12 +110,10 @@ class Expression:
 
         for expn in self._queue:
             if output is None:
-                output = expn(*args, **expn._context, **kwargs)
-            elif isinstance(output, Context):
-                output = expn(*args, **expn._context, **output, **kwargs)
+                output = expn(*args, **kwargs)
             else:
                 # make sure piped expressions only consume previous outputs args, and kwargs
-                output = expn(output, **expn._context, **kwargs)
+                output = expn(output, **kwargs)
 
         return output
 
@@ -271,7 +260,7 @@ class Operation:
         else:
             self.__f = func
 
-    def __call__(self, *args: Any, **kwargs: "Context") -> Any:
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
         """Applies the logic attached to this operation and returns output.
 
         Args:
