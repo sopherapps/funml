@@ -48,7 +48,7 @@ In order to ensure functions do not mutate their inputs, the data used once init
   [Erlang](https://www.erlang.org/) maximizes this advantage, together with a few other concepts to 
   make really huge concurrent programs.
 
-## Notable Features of funml
+## Notable Features of FunML
 
 1. Immutable data structures like enums, records, lists
 2. Piping outputs of one function to another as inputs. That's how bigger functions are created from smaller ones.

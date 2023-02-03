@@ -23,6 +23,8 @@ FunML allows us to create two types of custom data types:
 !!! note
     We have shortened `funml` to `ml` so wherever you see `ml` take it as `funml`
 
+Add the following code to `main.py`.
+
 ```python
 from copy import copy
 from datetime import date
@@ -55,7 +57,7 @@ class Color:
 
 ## Expressions
 
-The main construct in funml is the expression.
+The main construct in FunML is the expression.
 As long as anything is an expression, it can initialize a pipeline
 i.e. added to the beginning of a pipeline.
 
