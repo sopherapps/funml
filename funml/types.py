@@ -1,4 +1,5 @@
 """All types used by funml"""
+from collections.abc import Awaitable
 from inspect import signature
 from typing import Any, Union, Callable, Optional, List, Tuple
 
@@ -78,13 +79,20 @@ class Pipeline:
         """
         output = None
         queue = self._queue[:-1] if self._is_terminated else self._queue
+        is_async = False
 
         for expn in queue:
             if output is None:
                 output = expn(*args, **kwargs)
+            elif isinstance(output, Awaitable):
+                is_async = True
+                break
             else:
                 # make sure piped expressions only consume previous outputs args, and kwargs
                 output = expn(output, **kwargs)
+
+        if is_async:
+            return self.__as_async()(*args, **kwargs)
 
         return output
 
@@ -94,6 +102,13 @@ class Pipeline:
         new_pipeline._queue += self._queue
         new_pipeline._is_terminated = self._is_terminated
         return new_pipeline
+
+    def __as_async(self) -> "AsyncPipeline":
+        """Creates an async pipeline from this pipeline"""
+        pipe = AsyncPipeline()
+        pipe._queue = [*self._queue]
+        pipe._is_terminated = self._is_terminated
+        return pipe
 
     def __update_queue(self, nxt):
         """Appends a pipeline or an expression to the queue."""
@@ -107,6 +122,40 @@ class Pipeline:
             nxt_expn = to_expn(nxt)
             self._queue.append(nxt_expn)
             self._is_terminated = isinstance(nxt, ExecutionExpression)
+
+
+class AsyncPipeline(Pipeline):
+    """A pipeline for handling async code.
+
+    See more details in the [base class](funml.types.Pipeline)
+    """
+
+    async def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        """Computes the logic within the pipeline and returns the value.
+
+        This method runs all those expressions in the queue sequentially,
+        with the output of an expression being used as
+        input for the next expression.
+
+        Args:
+            args: any arguments passed.
+            kwargs: any key-word arguments passed
+
+        Returns:
+            the computed output of this pipeline.
+        """
+        output = None
+        queue = self._queue[:-1] if self._is_terminated else self._queue
+
+        for expn in queue:
+            if output is None:
+                output = expn(*args, **kwargs)
+            elif isinstance(output, Awaitable):
+                output = expn((await output), **kwargs)
+            else:
+                output = expn(output, **kwargs)
+
+        return output
 
 
 class Expression:

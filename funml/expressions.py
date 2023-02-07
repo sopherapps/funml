@@ -1,6 +1,6 @@
 """Assigning variables and literals
 """
-from typing import Type, Any
+from typing import Any
 
 from funml.types import to_expn, Expression
 

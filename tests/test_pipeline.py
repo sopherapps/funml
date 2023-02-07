@@ -90,3 +90,25 @@ def test_pipeline_copy():
             >> execute()
         )
         assert squares_str == second_expected
+
+
+@pytest.mark.filterwarnings(
+    "ignore:coroutine 'test_async_pipeline.<locals>.echo' was never awaited"
+)
+@pytest.mark.asyncio
+async def test_async_pipeline():
+    """Adding async code in the pipeline turns it asynchronous"""
+    is_even = val(lambda v: v % 2 == 0)
+    double = val(lambda v: v * 2)
+
+    async def echo(v):
+        return v
+
+    test_data = [
+        (l(7, 8, 6, 3), l(16, 12)),
+        (l(4, 2, 6, 3), l(8, 4, 12)),
+    ]
+
+    for nums, expected in test_data:
+        got = val(nums) >> ifilter(is_even) >> echo >> imap(double) >> execute()
+        assert (await got) == expected
