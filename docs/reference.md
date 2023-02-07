@@ -9,7 +9,10 @@ Types
 ::: funml.types
     options:
         members:
+            - Pipeline
+            - AsyncPipeline
             - Expression
+            - ExecutionExpression
             - MatchExpression
             - MLType
             - Operation

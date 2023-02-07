@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.1] - 2023-02-07
+
+### Added
+
+- Added `AsyncPipeline` to handle the pipelines that have asynchronous routines
+
+### Changed
+
+### Fixed
+
 ## [0.3.0] - 2023-01-30
 
 ### Added
