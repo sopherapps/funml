@@ -48,11 +48,17 @@ class Pipeline:
         self._queue: List[Expression] = []
         self._is_terminated = False
 
-    def __rshift__(self, nxt: Union["Expression", Callable, "Pipeline"]):
+    def __rshift__(
+        self, nxt: Union["Expression", Callable, "Pipeline"]
+    ) -> Union["Pipeline", Any]:
         """Uses `>>` to append the nxt expression, callable, pipeline to this pipeline.
 
         Args:
             nxt: the next expression, pipeline, or callable to apply after the current one.
+
+        Returns:
+            the updated pipeline or the value when the pipeline is executed in case `nxt` is of
+            type `ExecutionExpression`
 
         Raises:
             ValueError: when the pipeline is already terminated with ml.execute() in its queue.
@@ -183,7 +189,9 @@ class Expression:
         """
         return self._f(*args, **kwargs)
 
-    def __rshift__(self, nxt: Union["Expression", "Pipeline", Callable]) -> "Pipeline":
+    def __rshift__(
+        self, nxt: Union["Expression", "Pipeline", Callable]
+    ) -> Union["Pipeline", Any]:
         """This makes piping using the '>>' symbol possible.
 
         Combines with the given `nxt` expression or pipeline to produce a new pipeline
@@ -193,7 +201,8 @@ class Expression:
             nxt: the next expression, pipeline, or callable to apply after the current one.
 
         Returns:
-            a new pipeline where the first expression is the current expression followed by `nxt`
+            a new pipeline  where the first expression is the current expression followed by `nxt`
+            or returns the value when the pipeline is executed in case `nxt` is of type `ExecutionExpression`
         """
         new_pipeline = Pipeline()
         new_pipeline >> self >> nxt
