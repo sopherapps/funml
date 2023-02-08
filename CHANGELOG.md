@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.2] - 2023-02-08
+
+### Added
+
+### Changed
+
+- Signature of `__rshift__` for `Pipeline` and `Expression` returns either a `Pipeline` or `Any` result of executing the
+  pipeline.
+
+### Fixed
+
 ## [0.3.1] - 2023-02-07
 
 ### Added
