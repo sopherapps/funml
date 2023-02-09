@@ -1,6 +1,7 @@
 """All types used by funml"""
+import functools
 from collections.abc import Awaitable
-from inspect import signature
+from inspect import signature, Parameter, Signature
 from typing import Any, Union, Callable, Optional, List, Tuple
 
 from funml import errors
@@ -314,8 +315,10 @@ class Operation:
     """
 
     def __init__(self, func: Callable):
-        sig = _get_func_signature(func)
-        if len(sig.parameters) == 0:
+        self.__signature = _get_func_signature(func)
+        self.__args_length = _get_non_variable_args_length(self.__signature)
+
+        if len(self.__signature.parameters) == 0:
             # be more fault tolerant by using variable params
             self.__f = lambda *args, **kwargs: func()
         else:
@@ -331,7 +334,42 @@ class Operation:
         Returns:
             the final output of the operation's logic code.
         """
+        try:
+            args_length = _get_num_of_relevant_args(self.__signature, *args, **kwargs)
+            if args_length < self.__args_length:
+                return Operation(func=functools.partial(self.__f, *args, **kwargs))
+        except TypeError:
+            # binding is impossible so just use the default implementation
+            pass
+
         return self.__f(*args, **kwargs)
+
+
+def _get_num_of_relevant_args(sig: Signature, *args, **kwargs) -> int:
+    """Computes the number of args and kwargs relevant to the signature
+
+    Raises:
+        TypeError if the args and kwargs cannot be bound to the signature
+
+    Returns:
+        the number of args and kwargs passed that are relevant to the given signature
+    """
+    all_args = sig.bind_partial(*args, **kwargs)
+    all_args.apply_defaults()
+    return len(all_args.args) + len(all_args.kwargs)
+
+
+def _get_non_variable_args_length(sig: Signature) -> int:
+    """Retrieves the number of non variable args from the signature"""
+    return len(
+        list(
+            filter(
+                lambda v: v.kind
+                not in (Parameter.VAR_KEYWORD, Parameter.VAR_POSITIONAL),
+                sig.parameters.values(),
+            )
+        )
+    )
 
 
 def _get_func_signature(func: Callable):

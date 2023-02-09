@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.3] - 2023-02-09
+
+### Added
+
+- Add ability to curry functions i.e. transform functions with multiple args into functions with fewer args
+
+### Changed
+
+### Fixed
 
 ## [0.3.2] - 2023-02-08
 
