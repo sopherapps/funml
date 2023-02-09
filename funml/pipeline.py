@@ -22,8 +22,11 @@ def execute(*args: Any, **kwargs: Any) -> ExecutionExpression:
         ```python
         import funml as ml
 
-        output = ml.val(90) >> (lambda x: x**2) >> (lambda v: v/90) >> ml.execute()
-        # prints 90
+        to_power_of = ml.val(lambda power, v: v**power)
+        divided_by = ml.val(lambda divisor, v: v / divisor)
+
+        output = ml.val(90) >> to_power_of(3) >> divided_by(90) >> divided_by(3) >> ml.execute()
+        # prints 2700
         ```
     """
     return ExecutionExpression(*args, **kwargs)

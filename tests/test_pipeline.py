@@ -8,10 +8,14 @@ from funml import val, execute, ireduce, imap, l, ifilter
 
 def test_execute():
     """execute terminates pipeline"""
+    to_power_of = val(lambda power, v: v**power)
+    divided_by = val(lambda divisor, v: v / divisor)
+    with_suffix = val(lambda suffix, v: f"{v}{suffix}")
+
     test_data = [
-        (val(90) >> (lambda x: x**2) >> (lambda v: v / 90), 90),
+        (val(90) >> to_power_of(3) >> divided_by(90) >> divided_by(3), 2700),
         (
-            val("hey") >> (lambda x: f"{x} you") >> (lambda g: f"{g}, John"),
+            val("hey") >> with_suffix(" you") >> with_suffix(f", John"),
             "hey you, John",
         ),
     ]
