@@ -36,11 +36,10 @@ def main():
     unit = ml.val(lambda v: v)
     is_even = ml.val(lambda v: v % 2 == 0)
     mul = ml.val(lambda args: args[0] * args[1])
-    superscript = ml.val(lambda num, power: num**power)
+    superscript = ml.val(lambda num, power=1: num**power)
     get_month = ml.val(lambda value: value.month)
     is_num = ml.val(lambda v: isinstance(v, (int, float)))
     is_exp = ml.val(lambda v: isinstance(v, BaseException))
-    is_zero_or_less = ml.val(lambda v, *args: v <= 0)
     if_else = lambda check=unit, do=unit, else_do=unit: ml.val(
         lambda *args, **kwargs: (
             ml.match(check(*args, **kwargs))
@@ -52,13 +51,13 @@ def main():
     """
     High Order Expressions
     """
-    accum_factorial = if_else(
-        check=is_zero_or_less,
-        do=lambda v, ac: ac,
-        else_do=lambda v, ac: accum_factorial(v - 1, v * ac),
+    factorial = lambda v, accum=1: (
+        ml.match(v <= 0)
+        .case(True, do=ml.val(accum))
+        .case(False, do=lambda num, ac=0: factorial(num - 1, accum=num * ac)())
     )
-    cube = ml.val(lambda v: superscript(v, 3))
-    factorial = ml.val(lambda x: accum_factorial(x, 1))
+    # currying expressions is possible
+    cube = superscript(power=3)
     get_item_types = ml.ireduce(lambda x, y: f"{type(x)}, {type(y)}")
     nums_type_err = ml.val(
         lambda args: TypeError(f"expected numbers, got {get_item_types(args)}")
