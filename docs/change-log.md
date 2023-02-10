@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.4] - 2023-02-10
+
+### Added
+
+### Changed
+
+- Changed typings of `Expression`, `Pipeline` and `Operation` to be subscriptable like `Callable` is.
+
+### Fixed
+
 ## [0.3.3] - 2023-02-09
 
 ### Added
