@@ -1,11 +1,12 @@
 """Assigning variables and literals
 """
-from typing import Any
+from collections.abc import Callable
+from typing import Any, Union
 
 from funml.types import to_expn, Expression
 
 
-def val(v: Any) -> Expression:
+def val(v: Union[Expression, Callable, Any]) -> Expression:
     """Converts a generic value or lambda expression into a functional expression.
 
     This is useful when one needs to use piping on a non-ml function or
