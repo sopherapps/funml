@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.5] - 2023-02-13
+
+### Added
+
+### Changed
+
+- Remove typings of `Expression`, `Pipeline` and `Operation`.
+
+### Fixed
+
 ## [0.3.4] - 2023-02-10
 
 ### Added
