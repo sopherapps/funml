@@ -37,6 +37,18 @@ from funml import utils, types
 R = TypeVar("R", bound="Record")
 
 
+def to_dict(v: "Record") -> Dict[str, Any]:
+    """Converts a record into a dictionary.
+
+    Args:
+        v: the `Record` to convert to dict
+
+    Returns:
+        the dictionary representation of the record
+    """
+    return dataclasses.asdict(v)
+
+
 @dataclass_transform(
     field_specifiers=(dataclasses.Field, dataclasses.field),
 )

@@ -3,7 +3,7 @@ from typing import Optional, List, Any
 
 import pytest
 
-from funml import record
+from funml import record, to_dict
 
 
 def test_records_created():
@@ -166,3 +166,43 @@ def test_generic_alias_fields():
     assert security_dept != it_dept
     assert it_dept != hr_dept
     assert hr_dept != security_dept
+
+
+def test_dict():
+    """record can be cast to dict using to_dict"""
+
+    @record
+    class Department:
+        seniors: list[str]
+        juniors: List[str]
+        locations: tuple[str, ...]
+        misc: dict[str, Any]
+        head: str
+
+    test_data = [
+        dict(
+            seniors=["Joe", "Jane"],
+            juniors=["Herbert", "Leo"],
+            locations=("Kasasa", "Bujumbura", "Bugahya"),
+            misc={"short_name": "ScDept"},
+            head="John",
+        ),
+        dict(
+            seniors=["Paul"],
+            juniors=["Perry"],
+            locations=("Kampala", "Cairo"),
+            misc={"name": "IT Department"},
+            head="Jane",
+        ),
+        dict(
+            seniors=["Stella", "Isingoma"],
+            juniors=["Peter"],
+            locations=("Katanga",),
+            misc={"short_name": "HRDept"},
+            head="Peter",
+        ),
+    ]
+
+    for data in test_data:
+        dept = Department(**data)
+        assert to_dict(dept) == data
