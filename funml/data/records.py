@@ -10,11 +10,11 @@ Typical Usage:
         r: int
         g: int
         b: int
-        a: int
+        a: int = 1
 
     blue = Color(r=0, g=0, b=255, a=1)
     red = Color(r=255, g=0, b=0, a=1)
-    green = Color(r=0, g=255, b=0, a=1)
+    green = Color(r=0, g=255, b=0)
 
     print(blue)
     # prints: {'r': 0, 'g': 0, 'b': 255, 'a': 1}
@@ -119,6 +119,21 @@ class Record(types.MLType):
     Basically, any unique record type subclasses Record, sets
     the expected attributes and then is used to create new instances
     of that record type.
+
+    This type is usually not used directly but rather we use the [@record](funml.record) decorator
+
+    Example:
+
+        ```python
+        import funml as ml
+
+        @ml.record
+        class Color:
+            r: int
+            g: int
+            b: int
+            a: int = 1
+        ```
 
     Args:
         kwargs: the data for the current record instance.

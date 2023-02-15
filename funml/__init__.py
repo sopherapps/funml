@@ -28,7 +28,7 @@ from .data.monads import (
     is_ok,
     is_some,
 )
-from .data.records import record, to_dict
+from .data.records import record, to_dict, Record
 from .data.lists import l, imap, ifilter, ireduce
 from .pipeline import execute
 
@@ -47,6 +47,7 @@ __all__ = [
     "is_some",
     "is_none",
     "record",
+    "Record",
     "to_dict",
     "l",
     "imap",

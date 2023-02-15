@@ -2,6 +2,9 @@ FunML
 ===
 
 ::: funml
+    options:
+        filters:
+            - "!Record"
 
 Types
 ===
