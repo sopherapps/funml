@@ -7,7 +7,7 @@ import sys
 import types
 import typing
 import random
-from typing import Any
+from typing import Any, Dict, Tuple, List, Set
 
 
 _compound_type_regex = re.compile(r"tuple|list|set|dict")
@@ -16,6 +16,12 @@ _compound_type_generic_type_map = {
     "dict": "Dict",
     "list": "List",
     "set": "Set",
+}
+_default_globals = {
+    "Tuple": Tuple,
+    "Dict": Dict,
+    "Set": Set,
+    "List": List,
 }
 
 
@@ -142,12 +148,12 @@ def get_cls_annotations(cls, *, globals=None, locals=None, eval_str=False):
         else:
             ann = None
 
-        obj_globals = None
+        obj_globals = _default_globals
         module_name = getattr(cls, "__module__", None)
         if module_name:
             module = sys.modules.get(module_name, None)
             if module:
-                obj_globals = getattr(module, "__dict__", None)
+                obj_globals.update(getattr(module, "__dict__", {}))
         obj_locals = dict(vars(cls))
         unwrap = cls
     else:

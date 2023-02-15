@@ -9,32 +9,23 @@ b: str = "foo"
 class MyClass:
     a: int = 4
     b: str = "bar"
+    c: tuple[str, ...] = ("boo",)
 
-    def __init__(self, a, b):
+    def __init__(self, a, b, c):
         self.a = a
         self.b = b
+        self.c = c
 
     def __eq__(self, other):
-        return isinstance(other, MyClass) and self.a == other.a and self.b == other.b
-
-
-def function(a: int, b: str) -> MyClass:
-    return MyClass(a, b)
-
-
-def function2(a: int, b: "str", c: MyClass) -> MyClass:
-    pass
-
-
-def function3(a: "int", b: "str", c: "MyClass"):
-    pass
+        return (
+            isinstance(other, MyClass)
+            and self.a == other.a
+            and self.b == other.b
+            and self.c == other.c
+        )
 
 
 class UnannotatedClass:
-    pass
-
-
-def unannotated_function(a, b, c):
     pass
 
 

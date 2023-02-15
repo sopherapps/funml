@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+import typing
+from typing import List, Any
+
 import funml.utils as fn_utils
 from tests import inspect_stock_annotations, inspect_stringized_annotations
 
@@ -30,18 +35,24 @@ def test_get_annotations_with_stock_annotations():
 def test_get_annotations_with_stringized_annotations():
     """Adapted from the standard library: https://github.com/python/cpython/blob/main/Lib/test/test_inspect.py"""
     isa = inspect_stringized_annotations
-    assert fn_utils.get_cls_annotations(isa.MyClass) == {"a": "int", "b": "str"}
+    assert fn_utils.get_cls_annotations(isa.MyClass) == {
+        "a": "int",
+        "b": "str",
+        "c": "tuple[str, ...]",
+    }
     assert fn_utils.get_cls_annotations(isa.UnannotatedClass) == {}
 
     assert fn_utils.get_cls_annotations(isa.MyClass, eval_str=True) == {
         "a": int,
         "b": str,
+        "c": typing.Tuple[str, ...],
     }
     assert fn_utils.get_cls_annotations(isa.UnannotatedClass, eval_str=True) == {}
 
     assert fn_utils.get_cls_annotations(isa.MyClass, eval_str=False) == {
         "a": "int",
         "b": "str",
+        "c": "tuple[str, ...]",
     }
     assert fn_utils.get_cls_annotations(isa.UnannotatedClass, eval_str=False) == {}
 
