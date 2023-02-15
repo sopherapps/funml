@@ -1,9 +1,22 @@
 """Common utility functions"""
 import datetime
+import functools
+import re
 import string
+import sys
+import types
 import typing
 import random
 from typing import Any
+
+
+_compound_type_regex = re.compile(r"tuple|list|set|dict")
+_compound_type_generic_type_map = {
+    "tuple": "Tuple",
+    "dict": "Dict",
+    "list": "List",
+    "set": "Set",
+}
 
 
 def is_type(value: Any, cls: Any) -> bool:
@@ -85,3 +98,105 @@ def equals(first: Any, other: Any) -> bool:
         return type(first) == type(other) and str(first) == str(other)
 
     return first == other
+
+
+def get_cls_annotations(cls, *, globals=None, locals=None, eval_str=False):
+    """Compute the annotations dict for a class.
+    Passing in an object of any other type raises TypeError.
+    Returns a dict.  get_cls_annotations() returns a new dict every time
+    it's called; calling it twice on the same object will return two
+    different but equivalent dicts.
+    This function handles several details for you:
+      * If eval_str is true, values of type str will
+        be un-stringized using eval().  This is intended
+        for use with stringized annotations
+        ("from __future__ import annotations").
+      * If cls doesn't have an annotations dict, returns an
+        empty dict.
+      * Ignores inherited annotations on classes.  If a class
+        doesn't have its own annotations dict, returns an empty dict.
+      * All accesses to object members and dict values are done
+        using getattr() and dict.get() for safety.
+      * Always, always, always returns a freshly-created dict.
+    eval_str controls whether or not values of type str are replaced
+    with the result of calling eval() on those values:
+      * If eval_str is true, eval() is called on values of type str.
+      * If eval_str is false (the default), values of type str are unchanged.
+    globals and locals are passed in to eval(); see the documentation
+    for eval() for more information.  If either globals or locals is
+    None, this function may replace that value with a context-specific
+    default, contingent on type(cls):
+      * globals defaults to
+        sys.modules[cls.__module__].__dict__ and locals
+        defaults to the obj class namespace.
+
+    Adapted from the standard lib definition: https://github.com/python/cpython/blob/main/Lib/inspect.py
+    """
+    if isinstance(cls, type):
+        # class
+        obj_dict = getattr(cls, "__dict__", None)
+        if obj_dict and hasattr(obj_dict, "get"):
+            ann = obj_dict.get("__annotations__", None)
+            if isinstance(ann, types.GetSetDescriptorType):
+                ann = None
+        else:
+            ann = None
+
+        obj_globals = None
+        module_name = getattr(cls, "__module__", None)
+        if module_name:
+            module = sys.modules.get(module_name, None)
+            if module:
+                obj_globals = getattr(module, "__dict__", None)
+        obj_locals = dict(vars(cls))
+        unwrap = cls
+    else:
+        raise TypeError(f"{cls!r} is not a class")
+
+    if ann is None:
+        return {}
+
+    if not isinstance(ann, dict):
+        raise ValueError(f"{cls!r}.__annotations__ is neither a dict nor None")
+
+    if not ann:
+        return {}
+
+    if not eval_str:
+        return dict(ann)
+
+    if unwrap is not None:
+        while True:
+            if hasattr(unwrap, "__wrapped__"):
+                unwrap = unwrap.__wrapped__
+                continue
+            if isinstance(unwrap, functools.partial):
+                unwrap = unwrap.func
+                continue
+            break
+        if hasattr(unwrap, "__globals__"):
+            obj_globals = unwrap.__globals__
+
+    if globals is None:
+        globals = obj_globals
+    if locals is None:
+        locals = obj_locals
+
+    return_value = {
+        key: value
+        if not isinstance(value, str)
+        else eval(_to_generic(value), globals, locals)
+        for key, value in ann.items()
+    }
+    return return_value
+
+
+def _to_generic(annotation: str) -> str:
+    """Converts a future annotation like list[str] to a generic annotation e.g. List[str]
+
+    This is just for compatibility when it comes to python < 3.10
+    """
+    return _compound_type_regex.sub(
+        lambda v: _compound_type_generic_type_map[v.string[v.start() : v.end()]],
+        annotation,
+    )

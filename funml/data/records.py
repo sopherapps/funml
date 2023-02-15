@@ -73,14 +73,15 @@ def record(cls: Type[R]) -> Type[R]:
         # prints {'red': 75, 'green': 0, 'blue': 130}
         ```
     """
+    annotations = utils.get_cls_annotations(cls, eval_str=True)
     return dataclasses.dataclass(
         type(
             cls.__name__,
             (Record,),
             {
-                "__annotations__": cls.__annotations__,
-                "__slots__": tuple(cls.__annotations__.keys()),
-                "__dataclass_fields__": cls.__annotations__,
+                "__annotations__": annotations,
+                "__slots__": tuple(annotations.keys()),
+                "__dataclass_fields__": annotations,
             },
         ),
         init=False,

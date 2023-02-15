@@ -1,4 +1,5 @@
-from typing import Optional
+from __future__ import annotations
+from typing import Optional, List, Any, Tuple, Dict
 
 import pytest
 
@@ -63,3 +64,63 @@ def test_no_extra_fields():
 
     with pytest.raises(TypeError):
         _ = Color(r=56, g=4, b=45, a=5, y=0)
+
+
+# FIXME: record with also do defaults
+
+
+def test_generic_alias_fields():
+    """Fields with generic alias act as expected"""
+
+    @record
+    class Department:
+        seniors: list[str]
+        juniors: List[str]
+        locations: tuple[str, ...]
+        misc: dict[str, Any]
+
+    security_dept = Department(
+        seniors=["Joe", "Jane"],
+        juniors=["Herbert", "Leo"],
+        locations=("Kasasa", "Bujumbura", "Bugahya"),
+        misc={"short_name": "ScDept"},
+    )
+    it_dept = Department(
+        seniors=["Paul"],
+        juniors=["Perry"],
+        locations=("Kampala", "Cairo"),
+        misc={"name": "IT Department"},
+    )
+    hr_dept = Department(
+        seniors=["Stella", "Isingoma"],
+        juniors=["Peter"],
+        locations=("Katanga",),
+        misc={"short_name": "HRDept"},
+    )
+
+    another_security_dept = Department(
+        seniors=["Joe", "Jane"],
+        juniors=["Herbert", "Leo"],
+        locations=("Kasasa", "Bujumbura", "Bugahya"),
+        misc={"short_name": "ScDept"},
+    )
+    another_it_dept = Department(
+        seniors=["Paul"],
+        juniors=["Perry"],
+        locations=("Kampala", "Cairo"),
+        misc={"name": "IT Department"},
+    )
+    another_hr_dept = Department(
+        seniors=["Stella", "Isingoma"],
+        juniors=["Peter"],
+        locations=("Katanga",),
+        misc={"short_name": "HRDept"},
+    )
+
+    assert security_dept == another_security_dept
+    assert it_dept == another_it_dept
+    assert hr_dept == another_hr_dept
+
+    assert security_dept != it_dept
+    assert it_dept != hr_dept
+    assert hr_dept != security_dept
