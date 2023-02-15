@@ -66,7 +66,49 @@ def test_no_extra_fields():
         _ = Color(r=56, g=4, b=45, a=5, y=0)
 
 
-# FIXME: record with also do defaults
+def test_records_with_defaults():
+    """Records that have default values act as expected."""
+
+    @record
+    class Department:
+        seniors: list[str] = ["John"]
+        juniors: List[str]
+        locations: tuple[str, ...] = ()
+        misc: dict[str, Any] = {}
+        head: str = "John"
+
+    mostly_default_record = Department(juniors=[])
+    security_dept = Department(
+        seniors=["Joe", "Jane"],
+        juniors=["Herbert", "Leo"],
+        locations=("Kasasa", "Bujumbura", "Bugahya"),
+        misc={"short_name": "ScDept"},
+    )
+    it_dept = Department(
+        seniors=["Paul"],
+        juniors=["Perry"],
+        locations=("Kampala", "Cairo"),
+        misc={"name": "IT Department"},
+        head="Paul",
+    )
+
+    assert mostly_default_record == Department(
+        juniors=[], seniors=["John"], locations=(), misc={}, head="John"
+    )
+    assert security_dept == Department(
+        seniors=["Joe", "Jane"],
+        juniors=["Herbert", "Leo"],
+        locations=("Kasasa", "Bujumbura", "Bugahya"),
+        misc={"short_name": "ScDept"},
+        head="John",
+    )
+    assert it_dept == Department(
+        seniors=["Paul"],
+        juniors=["Perry"],
+        locations=("Kampala", "Cairo"),
+        misc={"name": "IT Department"},
+        head="Paul",
+    )
 
 
 def test_generic_alias_fields():

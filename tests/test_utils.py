@@ -63,3 +63,23 @@ def test_get_annotations_with_stringized_annotations():
     assert fn_utils.get_cls_annotations(
         isa.MyClassWithLocalAnnotations, eval_str=True
     ) == {"x": int}
+
+
+def test_get_cls_defaults():
+    """get_cls_defaults returns the default values of a given class' attributes"""
+
+    class Department:
+        seniors: list[str] = ["John"]
+        juniors: List[str]
+        locations: tuple[str, ...] = ()
+        misc: dict[str, Any] = {}
+        head: str = "John"
+
+    ann = fn_utils.get_cls_annotations(Department, eval_str=True)
+    defaults = fn_utils.get_cls_defaults(Department, annotations=ann)
+    assert defaults == {
+        "seniors": ["John"],
+        "locations": (),
+        "misc": {},
+        "head": "John",
+    }

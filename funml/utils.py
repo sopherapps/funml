@@ -197,6 +197,37 @@ def get_cls_annotations(cls, *, globals=None, locals=None, eval_str=False):
     return return_value
 
 
+def get_cls_defaults(cls: type, annotations: Dict[str, type]) -> Dict[str, Any]:
+    """Retrieves all default values of a class attributes.
+
+    Args:
+        cls: the class
+        annotations: the annotations of the class
+
+    Returns:
+        a dictionary of attributes and their default values
+
+    Raises:
+        TypeError if the defaults provided are not of the expected type as specified in annotations
+    """
+    defaults = {}
+
+    for attr, type_ in annotations.items():
+        try:
+            value = getattr(cls, attr)
+
+            if not is_type(value, type_):
+                raise TypeError(
+                    f"attribute {attr} should be of type {type_}; got {value}"
+                )
+
+            defaults[attr] = value
+        except AttributeError:
+            pass
+
+    return defaults
+
+
 def _to_generic(annotation: str) -> str:
     """Converts a future annotation like list[str] to a generic annotation e.g. List[str]
 

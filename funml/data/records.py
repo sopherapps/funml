@@ -74,6 +74,8 @@ def record(cls: Type[R]) -> Type[R]:
         ```
     """
     annotations = utils.get_cls_annotations(cls, eval_str=True)
+    defaults = utils.get_cls_defaults(cls, annotations=annotations)
+
     return dataclasses.dataclass(
         type(
             cls.__name__,
@@ -82,6 +84,7 @@ def record(cls: Type[R]) -> Type[R]:
                 "__annotations__": annotations,
                 "__slots__": tuple(annotations.keys()),
                 "__dataclass_fields__": annotations,
+                "__defaults__": defaults,
             },
         ),
         init=False,
@@ -111,8 +114,12 @@ class Record(types.MLType):
         TypeError: the data passed is does not correspond to the expected annotations.
     """
 
+    __defaults__: Dict[str, Any] = {}
+
     def __init__(self, **kwargs: Any):
+        kwargs = {**self.__defaults__, **kwargs}
         self.__attrs = kwargs
+
         if not _is_valid(kwargs, self.__annotations__):
             raise TypeError(
                 f"expected key-word arguments of signature {self.__annotations__}, got {kwargs}"
