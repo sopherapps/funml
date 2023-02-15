@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.6] - 2023-02-15
+
+### Added
+
+### Changed
+
+- Records can have fields with subscripted builtin types like `list[str]` thanks to `from __future__ import annotations`.
+- Records can define default values
+
+### Fixed
+
 ## [0.3.5] - 2023-02-13
 
 ### Added
