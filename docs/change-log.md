@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.8] - 2023-02-15
+
+### Added
+
+- Expose the `Record` type on the root `funml` package
+
+### Changed
+
+### Fixed
+
 ## [0.3.7] - 2023-02-15
 
 ### Added
