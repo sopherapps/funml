@@ -24,7 +24,7 @@ class Color:
     r: int
     g: int
     b: int
-    a: int
+    a: int = 1
 
 
 def main():
@@ -120,7 +120,7 @@ def main():
     dates = ml.val(dates)
     nums = ml.val(ml.l(12, 3, 45, 7, 8, 6, 3))
     data = ml.l((2, 3), ("hey", 7), (5, "y"), (8.1, 6))
-    blue = Color(r=0, g=0, b=255, a=1)
+    blue = Color(r=0, g=0, b=255)
 
     """
     Pipeline Creation and Execution

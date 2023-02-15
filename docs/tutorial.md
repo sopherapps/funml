@@ -52,7 +52,7 @@ class Color:
     r: int
     g: int
     b: int
-    a: int
+    a: int = 1
 ```
 
 ## Expressions
@@ -250,7 +250,7 @@ Let's add some data to the `main` function in our script `main.py`.
     dates = ml.val(dates)
     nums = ml.val(ml.l(12, 3, 45, 7, 8, 6, 3))
     data = ml.l((2, 3), ("hey", 7), (5, "y"), (8.1, 6))
-    blue = Color(r=0, g=0, b=255, a=1)
+    blue = Color(r=0, g=0, b=255)
 ```
 
 ## Create Some Pipelines and Execute Them
@@ -359,7 +359,7 @@ cube of 5: 125
 factorial for 12: 479001600
 factorial for 8: 40320
 factorial for 6: 720
-blue: {'r': 0, 'g': 0, 'b': 255, 'a': 1}
+blue: {'a': 1, 'r': 0, 'g': 0, 'b': 255}
 
 after multiplication:
 [&lt;Result.OK: (6,)&gt;, &lt;Result.ERR: (TypeError("expected numbers, got &lt;class 'str'&gt;, &lt;class 'int'&gt;"),)&gt;, &lt;Result.ERR: (TypeError("expected numbers, got &lt;class 'int'&gt;, &lt;class 'str'&gt;"),)&gt;, &lt;Result.OK: (48.599999999999994,)&gt;]

@@ -66,11 +66,12 @@ def record(cls: Type[R]) -> Type[R]:
             red: int
             green: int
             blue: int
+            alpha: int = 1
 
         indigo = Color(red=75, green=0, blue=130)
 
         print(indigo)
-        # prints {'red': 75, 'green': 0, 'blue': 130}
+        # prints {'red': 75, 'green': 0, 'blue': 130, 'alpha': 1}
         ```
     """
     annotations = utils.get_cls_annotations(cls, eval_str=True)
