@@ -54,7 +54,7 @@ def record(cls: Type[R]) -> Type[R]:
         cls: the class to transform into a record
 
     Returns:
-        A class which can act as a record of the particular schema
+        A class which can act as a record of the particular schema \
         set by the attributes.
 
     Example:

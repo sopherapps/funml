@@ -17,7 +17,7 @@ def val(v: Union[Expression, Callable, Any]) -> Expression:
         v: the value e.g. 90 or function e.g. `min`
 
     Returns:
-        an ml [`Expression`][funml.types.Expression] that can be piped to other ml-expressions or invoked to return its
+        an ml [`Expression`][funml.types.Expression] that can be piped to other ml-expressions or invoked to return its\
         output.
 
     Example:
