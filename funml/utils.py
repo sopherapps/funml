@@ -1,4 +1,5 @@
 """Common utility functions"""
+from __future__ import annotations
 import datetime
 import functools
 import re
@@ -36,18 +37,30 @@ def is_type(value: Any, cls: Any) -> bool:
     if _type in (Any, ...):
         return True
 
-    if isinstance(_type, typing._SpecialForm):
-        _type = _type.__args__
+    _type = _extract_type(_type)
+    return isinstance(value, _type) or value == _type
 
-    if isinstance(_type, typing._GenericAlias):
-        origin = getattr(_type, "__origin__")
+
+def _extract_type(annotation: Any):
+    """Extracts the actual type from an annotation"""
+    if isinstance(annotation, typing._SpecialForm):
+        return annotation.__args__
+
+    if isinstance(annotation, typing._GenericAlias):
+        origin = annotation.__origin__
         origin_name = getattr(origin, "_name", None)
         if origin_name == "Union":
-            _type = _type.__args__
+            return annotation.__args__
         else:
-            _type = origin
+            return origin
 
-    return isinstance(value, _type) or value == _type
+    try:
+        if isinstance(annotation, types.GenericAlias):
+            return annotation.__origin__
+    except AttributeError:
+        pass
+
+    return annotation
 
 
 def generate_random_string() -> str:
@@ -192,7 +205,7 @@ def get_cls_annotations(cls, *, globals=None, locals=None, eval_str=False):
     return_value = {
         key: value
         if not isinstance(value, str)
-        else eval(_to_generic(value), globals, locals)
+        else _parse_type_str(_to_generic(value), globals, locals)
         for key, value in ann.items()
     }
     return return_value
@@ -242,3 +255,18 @@ def _to_generic(annotation: str) -> str:
         lambda v: _compound_type_generic_type_map[v.string[v.start() : v.end()]],
         annotation,
     )
+
+
+def _parse_type_str(
+    value: str,
+    __globals: dict[str, Any] | None = ...,
+    __locals: typing.Mapping[str, Any] | None = ...,
+):
+    """Converts a type value expressed as a string into its python value."""
+    try:
+        return eval(value, __globals, __locals)
+    except TypeError as exp:
+        if "not subscriptable" in f"{exp}":
+            # ignore types that are not supported in the given version
+            return Any
+        raise exp

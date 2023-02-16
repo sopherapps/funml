@@ -1,4 +1,7 @@
 from __future__ import annotations
+
+from collections.abc import Callable
+from pathlib import PurePath
 from typing import Optional, List, Any
 
 import pytest
@@ -122,6 +125,9 @@ def test_generic_alias_fields():
         misc: dict[str, Any]
         is_active: bool | None
         description: ...
+        func: Callable[[int], Any]
+
+    echo = lambda v: v
 
     security_dept = Department(
         seniors=["Joe", "Jane"],
@@ -130,6 +136,7 @@ def test_generic_alias_fields():
         misc={"short_name": "ScDept"},
         is_active=False,
         description="security",
+        func=echo,
     )
     it_dept = Department(
         seniors=["Paul"],
@@ -138,6 +145,7 @@ def test_generic_alias_fields():
         misc={"name": "IT Department"},
         is_active=True,
         description="it",
+        func=echo,
     )
     hr_dept = Department(
         seniors=["Stella", "Isingoma"],
@@ -146,6 +154,7 @@ def test_generic_alias_fields():
         misc={"short_name": "HRDept"},
         is_active=False,
         description=4,
+        func=echo,
     )
 
     another_security_dept = Department(
@@ -155,6 +164,7 @@ def test_generic_alias_fields():
         misc={"short_name": "ScDept"},
         is_active=False,
         description="security",
+        func=echo,
     )
     another_it_dept = Department(
         seniors=["Paul"],
@@ -163,6 +173,7 @@ def test_generic_alias_fields():
         misc={"name": "IT Department"},
         is_active=True,
         description="it",
+        func=echo,
     )
     another_hr_dept = Department(
         seniors=["Stella", "Isingoma"],
@@ -171,6 +182,7 @@ def test_generic_alias_fields():
         misc={"short_name": "HRDept"},
         is_active=False,
         description=4,
+        func=echo,
     )
 
     assert security_dept == another_security_dept
