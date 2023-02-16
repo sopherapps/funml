@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.9] - 2023-02-16
+
+### Added
+
+- Extend types in record to handle "..." and "bool | None" etc.
+
+### Changed
+
+### Fixed
+
 ## [0.3.8] - 2023-02-15
 
 ### Added
