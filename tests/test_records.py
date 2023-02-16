@@ -120,24 +120,32 @@ def test_generic_alias_fields():
         juniors: List[str]
         locations: tuple[str, ...]
         misc: dict[str, Any]
+        is_active: bool | None
+        description: ...
 
     security_dept = Department(
         seniors=["Joe", "Jane"],
         juniors=["Herbert", "Leo"],
         locations=("Kasasa", "Bujumbura", "Bugahya"),
         misc={"short_name": "ScDept"},
+        is_active=False,
+        description="security",
     )
     it_dept = Department(
         seniors=["Paul"],
         juniors=["Perry"],
         locations=("Kampala", "Cairo"),
         misc={"name": "IT Department"},
+        is_active=True,
+        description="it",
     )
     hr_dept = Department(
         seniors=["Stella", "Isingoma"],
         juniors=["Peter"],
         locations=("Katanga",),
         misc={"short_name": "HRDept"},
+        is_active=False,
+        description=4,
     )
 
     another_security_dept = Department(
@@ -145,18 +153,24 @@ def test_generic_alias_fields():
         juniors=["Herbert", "Leo"],
         locations=("Kasasa", "Bujumbura", "Bugahya"),
         misc={"short_name": "ScDept"},
+        is_active=False,
+        description="security",
     )
     another_it_dept = Department(
         seniors=["Paul"],
         juniors=["Perry"],
         locations=("Kampala", "Cairo"),
         misc={"name": "IT Department"},
+        is_active=True,
+        description="it",
     )
     another_hr_dept = Department(
         seniors=["Stella", "Isingoma"],
         juniors=["Peter"],
         locations=("Katanga",),
         misc={"short_name": "HRDept"},
+        is_active=False,
+        description=4,
     )
 
     assert security_dept == another_security_dept

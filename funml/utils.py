@@ -7,7 +7,7 @@ import sys
 import types
 import typing
 import random
-from typing import Any, Dict, Tuple, List, Set
+from typing import Any, Dict, Tuple, List, Set, Union
 
 
 _compound_type_regex = re.compile(r"tuple|list|set|dict")
@@ -22,6 +22,7 @@ _default_globals = {
     "Dict": Dict,
     "Set": Set,
     "List": List,
+    "Union": Union,
 }
 
 
@@ -32,7 +33,7 @@ def is_type(value: Any, cls: Any) -> bool:
     Also subscriptable types are not really being checked well
     """
     _type = cls
-    if _type in (Any,):
+    if _type in (Any, ...):
         return True
 
     if isinstance(_type, typing._SpecialForm):
@@ -233,6 +234,10 @@ def _to_generic(annotation: str) -> str:
 
     This is just for compatibility when it comes to python < 3.10
     """
+    union_args = annotation.split("|")
+    if len(union_args) > 1:
+        annotation = f"Union[{','.join(union_args)}]"
+
     return _compound_type_regex.sub(
         lambda v: _compound_type_generic_type_map[v.string[v.start() : v.end()]],
         annotation,
