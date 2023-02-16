@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.10] - 2023-02-16
+
+### Added
+
+### Changed
+
+### Fixed
+
+- Fix TypeError in records: isinstance() argument cannot be a parameterized generic
+
 ## [0.3.9] - 2023-02-16
 
 ### Added
