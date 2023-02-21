@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.11] - 2023-02-21
+
+### Added
+
+### Changed
+
+### Fixed
+
+- Fix TypeError: isinstance() argument 2 cannot be a parameterized generic in python 3.11
+
 ## [0.3.10] - 2023-02-16
 
 ### Added
