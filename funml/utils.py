@@ -44,13 +44,13 @@ def is_type(value: Any, cls: Any) -> bool:
 def _extract_type(annotation: Any):
     """Extracts the actual type from an annotation"""
     if isinstance(annotation, typing._SpecialForm):
-        return annotation.__args__
+        return tuple([_extract_type(arg) for arg in annotation.__args__])
 
     if isinstance(annotation, typing._GenericAlias):
         origin = annotation.__origin__
         origin_name = getattr(origin, "_name", None)
         if origin_name == "Union":
-            return annotation.__args__
+            return tuple([_extract_type(arg) for arg in annotation.__args__])
         else:
             return origin
 

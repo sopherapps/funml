@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from os import PathLike
 from pathlib import PurePath
 from typing import Optional, List, Any
 
@@ -126,6 +127,7 @@ def test_generic_alias_fields():
         is_active: bool | None
         description: ...
         func: Callable[[int], Any]
+        path: bytes | PathLike[bytes] | str = ""
 
     echo = lambda v: v
 
