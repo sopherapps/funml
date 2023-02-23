@@ -1,12 +1,14 @@
+from typing import List
+
 import pytest
 
-from funml import Option, Result, data
+from funml import Option, Result, Enum, record, to_json
 
 
 def test_enum_creation():
     """enum and e are used to create enums"""
 
-    class Date(data.enum.Enum):
+    class Date(Enum):
         January = int
         February = int
         March = int
@@ -76,3 +78,61 @@ def test_enum_name():
     assert Result.ERR(TypeError("some error")).name == "Result.ERR"
     assert Option.NONE.name == "Option.NONE"
     assert Option.SOME(345.89).name == "Option.SOME"
+
+
+def test_to_json():
+    """to_json transforms enum into a JSON string representation of enum"""
+
+    @record
+    class Number:
+        num: int
+        decimals: List[int]
+
+    class Alpha(Enum):
+        OPAQUE = None
+        TRANSLUCENT_AS_NUM = (Number,)
+        TRANSLUCENT_AS_DICT = {"num": int, "decimals": List[str]}
+
+    test_data = [
+        (Alpha.OPAQUE, 'Alpha.OPAQUE: "OPAQUE"'),
+        (
+            Alpha.TRANSLUCENT_AS_NUM(Number(num=12, decimals=[8, 7])),
+            'Alpha.TRANSLUCENT_AS_NUM: [{"num": 12, "decimals": [8, 7]}]',
+        ),
+        (
+            Alpha.TRANSLUCENT_AS_DICT(dict(num=24, decimals=[8, 6])),
+            'Alpha.TRANSLUCENT_AS_DICT: {"num": 24, "decimals": [8, 6]}',
+        ),
+    ]
+
+    for item, expected in test_data:
+        assert to_json(item) == expected
+
+
+def test_from_json():
+    """from_json method transforms a JSON string representation into an Enum"""
+
+    @record
+    class Number:
+        num: int
+        decimals: List[int]
+
+    class Alpha(Enum):
+        OPAQUE = None
+        TRANSLUCENT_AS_NUM = (Number,)
+        TRANSLUCENT_AS_DICT = {"num": int, "decimals": List[str]}
+
+    test_data = [
+        ('Alpha.OPAQUE: "OPAQUE"', Alpha.OPAQUE),
+        (
+            'Alpha.TRANSLUCENT_AS_NUM: [{"num": 12, "decimals": [8, 7]}]',
+            Alpha.TRANSLUCENT_AS_NUM(Number(num=12, decimals=[8, 7])),
+        ),
+        (
+            'Alpha.TRANSLUCENT_AS_DICT: {"num": 24, "decimals": [8, 6]}',
+            Alpha.TRANSLUCENT_AS_DICT(dict(num=24, decimals=[8, 6])),
+        ),
+    ]
+
+    for item, expected in test_data:
+        assert Alpha.from_json(item) == expected

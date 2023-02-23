@@ -111,6 +111,8 @@ We have some builtin primitive expressions like
 - `ml.is_some`
 - `ml.if_none`
 - `ml.is_none`
+- `ml.to_dict`
+- `ml.to_json`
 
 So in our script, let's add a `main` function and in it, add the primitive expressions:
 
@@ -362,9 +364,9 @@ factorial for 6: 720
 blue: {'a': 1, 'r': 0, 'g': 0, 'b': 255}
 
 after multiplication:
-[&lt;Result.OK: (6,)&gt;, &lt;Result.ERR: (TypeError("expected numbers, got &lt;class 'str'&gt;, &lt;class 'int'&gt;"),)&gt;, &lt;Result.ERR: (TypeError("expected numbers, got &lt;class 'int'&gt;, &lt;class 'str'&gt;"),)&gt;, &lt;Result.OK: (48.599999999999994,)&gt;]
+[&lt;Result.OK: 6&gt;, &lt;Result.ERR: TypeError("expected numbers, got &lt;class 'str'&gt;, &lt;class 'int'&gt;")&gt;, &lt;Result.ERR: TypeError("expected numbers, got &lt;class 'int'&gt;, &lt;class 'str'&gt;")&gt;, &lt;Result.OK: 48.599999999999994&gt;]
 
-data as options: [&lt;Option.SOME: (6,)&gt;, &lt;Option.NONE: ('NONE',)&gt;, &lt;Option.NONE: ('NONE',)&gt;, &lt;Option.SOME: (48.599999999999994,)&gt;]
+data as options: [&lt;Option.SOME: 6&gt;, &lt;Option.NONE: 'NONE'&gt;, &lt;Option.NONE: 'NONE'&gt;, &lt;Option.SOME: 48.599999999999994&gt;]
 
 data as actual values: [6, 48.599999999999994]
 ```

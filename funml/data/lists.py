@@ -33,6 +33,7 @@ Typical Usage:
     )
     ```
 """
+import json
 from functools import reduce
 from typing import Any, Optional, Callable, List, Tuple, Union
 
@@ -199,6 +200,17 @@ class IList(types.MLType):
         return _lists_match(
             schema=self._pre_capture, actual=pre_capture
         ) and _lists_match(schema=self._post_capture, actual=post_capture)
+
+    @classmethod
+    def from_json(cls, value: str) -> "IList":
+        """See Base Class: [`MLType`][funml.types.MLType]"""
+        try:
+            items = json.loads(value)
+            return cls(*items)
+        except Exception as exp:
+            raise ValueError(
+                f"unable to deserialize JSON {value} to {cls}. The following error occurred {exp}"
+            )
 
     @property
     def _size(self):

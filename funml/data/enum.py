@@ -8,12 +8,14 @@ Typical Usage:
 
     class Color(ml.Enum):
         RED = None
-        BLUE ={'h': str, 's': str}
-        GREEN =(int, str)
+        BLUE = {'h': str, 's': str}
+        GREEN = (int, str)
+        ALPHA = float
 
     r = Color.RED
     g = Color.GREEN(6, "string")
     b = Color.BLUE({'h': 'when', 's': 'how'})
+    a = Color.ALPHA(0.6)
 
     print(r)
     # prints: <Color.RED: ('RED',)>
@@ -23,30 +25,38 @@ Typical Usage:
 
     print(b)
     # prints: <Color.BLUE: ({'h': 'when', 's': 'how'},)>
+
+    print(a)
+    # prints: <Color.ALPHA: 0.6>
     ```
 """
+import json
 from typing import Type, Union, Tuple, Dict, Optional, Any, Callable
 
 from funml import utils, types
 
 
 def _is_valid(
-    value: Tuple[Any, ...],
-    signature: Optional[Union[Tuple[Type, ...], Dict[str, Type]]],
+    value: Any,
+    signature: Optional[Union[Tuple[Type, ...], Dict[str, Type], Type]],
 ) -> bool:
     """Checks to see if value is of given signature"""
     if signature is None:
         return True
-    elif isinstance(signature, tuple) and isinstance(value, tuple):
-        return all([utils.is_type(v, sig) for sig, v in zip(signature, value)])
-    elif isinstance(signature, dict) and len(value) == 1 and isinstance(value[0], dict):
-        return all(
-            [
-                utils.is_type(value[0].get(sig_key, None), sig_type)
-                for sig_key, sig_type in signature.items()
-            ]
-        )
-    return False
+    try:
+        if isinstance(signature, tuple):
+            return all([utils.is_type(v, sig) for sig, v in zip(signature, value)])
+        elif isinstance(signature, dict):
+            return all(
+                [
+                    utils.is_type(value.get(sig_key, None), sig_type)
+                    for sig_key, sig_type in signature.items()
+                ]
+            )
+
+        return utils.is_type(value, signature)
+    except Exception:
+        return False
 
 
 class Enum(types.MLType):
@@ -105,10 +115,10 @@ class Enum(types.MLType):
         day_enums = day_enums_transform(dates)
 
         print(day_enums)
-        # prints [<Day.TUE: (datetime.date(200, 3, 4),)>, <Day.FRI: (datetime.date(2009, 1, 16),)>,\
-        # <Day.WED: (datetime.date(1993, 12, 29),)>, <Day.WED: (datetime.date(2004, 10, 13),)>, \
-        # <Day.SAT: (datetime.date(2020, 9, 5),)>, <Day.FRI: (datetime.date(2004, 5, 7),)>, \
-        # <Day.FRI: (datetime.date(1228, 8, 18),)>]
+        # prints [<Day.TUE: datetime.date(200, 3, 4)>, <Day.FRI: datetime.date(2009, 1, 16)>,\
+        # <Day.WED: datetime.date(1993, 12, 29)>, <Day.WED: datetime.date(2004, 10, 13)>, \
+        # <Day.SAT: datetime.date(2020, 9, 5)>, <Day.FRI: datetime.date(2004, 5, 7)>, \
+        # <Day.FRI: datetime.date(1228, 8, 18)>]
         ```
     """
 
@@ -126,12 +136,17 @@ class Enum(types.MLType):
         cls.__slots__ = slots
 
     def __init__(self, *args: Union[Any, Dict[str, Any], int]):
-        if not _is_valid(args, self.signature):
+        if isinstance(self.signature, tuple):
+            data = args
+        else:
+            data = args[0]
+
+        if not _is_valid(data, self.signature):
             raise TypeError(
-                f"expected data type passed to be {self.signature}, got {args}"
+                f"expected data type passed to be {self.signature}, got {data} from args: {args}"
             )
 
-        self._value = args
+        self._value = data
 
     @classmethod
     def __add_variant(
@@ -153,9 +168,6 @@ class Enum(types.MLType):
         """
         dotted_name = f"{cls.__name__}.{name}"
         signature = shape
-        if not isinstance(signature, (dict, tuple, type(None))):
-            # transform stuff like shape=int into shape=(int,)
-            signature = (signature,)
 
         if signature is None:
             opt_value = cls(name)
@@ -197,6 +209,26 @@ class Enum(types.MLType):
             and self._name == other._name
             and (self._value == other._value or _is_valid(other._value, self._value))
         )
+
+    @classmethod
+    def from_json(cls, value: str) -> "Enum":
+        """See Base Class: [`MLType`][funml.types.MLType]"""
+        try:
+            name, value = value.split(": ", maxsplit=1)
+            variant = getattr(cls, name)
+
+            if variant.signature is not None:
+                value = json.loads(value)
+                if isinstance(value, tuple):
+                    return variant(*value)
+
+                return variant(value)
+
+            return variant
+        except Exception as exp:
+            raise ValueError(
+                f"unable to deserialize JSON {value} to {cls}. The following error occurred {exp}"
+            )
 
     def __eq__(self, other: "Enum"):
         """Checks equality of the this enum and `other`.

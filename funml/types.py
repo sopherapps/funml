@@ -41,6 +41,15 @@ class MLType:
         """
         raise NotImplemented("_is_like not implemented")
 
+    @classmethod
+    def from_json(cls, value: str) -> "MLType":
+        """Converts a JSON string into an MLType instance
+
+        Returns:
+            the MLType instance got from the JSON string
+        """
+        raise NotImplemented("from_json not implemented")
+
 
 class Pipeline:
     """A series of logic blocks that operate on the same data in sequence.

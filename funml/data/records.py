@@ -27,6 +27,7 @@ Typical Usage:
     ```
 """
 import dataclasses
+import json
 from typing import Dict, Any, Type, Callable, Tuple, TypeVar
 
 from typing_extensions import dataclass_transform
@@ -173,6 +174,20 @@ class Record(types.MLType):
             types.Operation(func=lambda *args: do(*args))
         )
 
+    @classmethod
+    def from_json(cls, value: str) -> "Record":
+        """See Base Class: [`MLType`][funml.types.MLType]"""
+        try:
+            kwargs = json.loads(value)
+            return cls(**kwargs)
+        except Exception as exp:
+            raise ValueError(
+                f"unable to deserialize JSON {value} to {cls}. The following error occurred {exp}"
+            )
+
     def __str__(self):
         """A readable representation of this type."""
         return f"{self.__attrs}"
+
+    def __iter__(self):
+        return ((k, v) for k, v in self.__attrs.items())

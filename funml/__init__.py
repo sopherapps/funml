@@ -31,6 +31,7 @@ from .data.monads import (
 from .data.records import record, to_dict, Record
 from .data.lists import l, imap, ifilter, ireduce
 from .pipeline import execute
+from .json import to_json
 
 __all__ = [
     "match",
