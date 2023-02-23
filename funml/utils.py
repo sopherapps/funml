@@ -37,23 +37,23 @@ def is_type(value: Any, cls: Any) -> bool:
     if _type in (Any, ...):
         return True
 
-    _type = _extract_type(_type)
+    _type = extract_type(_type)
     try:
         return isinstance(value, _type) or value == _type
     except Exception as exp:
         raise exp
 
 
-def _extract_type(annotation: Any):
+def extract_type(annotation: Any):
     """Extracts the actual type from an annotation"""
     if isinstance(annotation, typing._SpecialForm):
-        return tuple([_extract_type(arg) for arg in annotation.__args__])
+        return tuple([extract_type(arg) for arg in annotation.__args__])
 
     if isinstance(annotation, typing._GenericAlias):
         origin = annotation.__origin__
         origin_name = getattr(origin, "_name", None)
         if origin_name == "Union":
-            return tuple([_extract_type(arg) for arg in annotation.__args__])
+            return tuple([extract_type(arg) for arg in annotation.__args__])
         else:
             return origin
 
@@ -64,6 +64,22 @@ def _extract_type(annotation: Any):
         pass
 
     return annotation
+
+
+def right_pad_list(
+    items: Union[List, Tuple], target_length: int, fill_value: Any
+) -> List:
+    """Right pads a given list or tuple to reach a given number of elements
+
+    Args:
+        items: the original list
+        target_length: the final length of the padded list
+        fill_value: the value to fill the empty slots in the padded list
+
+    Returns:
+        the new list with the given target length, or the old one if the target length is less than the original length
+    """
+    return list(items) + ([fill_value] * (target_length - len(items)))
 
 
 def generate_random_string() -> str:

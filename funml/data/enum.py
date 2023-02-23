@@ -31,9 +31,12 @@ Typical Usage:
     ```
 """
 import json
+from collections.abc import Iterable, Mapping
 from typing import Type, Union, Tuple, Dict, Optional, Any, Callable
 
 from funml import utils, types
+from .records import Record
+from ..utils import extract_type, right_pad_list
 
 
 def _is_valid(
@@ -122,7 +125,7 @@ class Enum(types.MLType):
         ```
     """
 
-    signature: Optional[Union[Tuple[Type, ...], Dict[str, Type]]] = None
+    signature: Optional[Union[Tuple[Type, ...], Dict[str, Type], Type]] = None
     _name: str = ""
 
     def __init_subclass__(cls, **kwargs):
@@ -214,12 +217,15 @@ class Enum(types.MLType):
     def from_json(cls, value: str) -> "Enum":
         """See Base Class: [`MLType`][funml.types.MLType]"""
         try:
-            name, value = value.split(": ", maxsplit=1)
+            full_name, value = value.split(": ", maxsplit=1)
+            _, name = full_name.split(".", maxsplit=1)
             variant = getattr(cls, name)
 
             if variant.signature is not None:
                 value = json.loads(value)
-                if isinstance(value, tuple):
+                value = _cast_to_signature(variant.signature, value)
+
+                if isinstance(variant.signature, tuple):
                     return variant(*value)
 
                 return variant(value)
@@ -264,3 +270,49 @@ def _get_cls_attrs(cls: type) -> Dict[str, Any]:
         the class attributes as a dictionary
     """
     return {k: v for k, v in cls.__dict__.items() if not k.startswith("_")}
+
+
+def _cast_to_signature(
+    signature: Union[Tuple[Type, ...], Dict[str, Type], Type], value: Any
+) -> Any:
+    """Attempts to cast a value to a given signature.
+
+    Useful when deserializing.
+
+    Args:
+        signature: the expected shape of the value
+        value: the value to cast to a given shape
+
+    Returns:
+        the value cast to the given signature
+    """
+    try:
+        if isinstance(signature, tuple):
+            padded_sig = right_pad_list(signature, len(value), Any)
+            return tuple(
+                [_cast_to_signature(type_, v) for type_, v in zip(padded_sig, value)]
+            )
+        elif isinstance(signature, dict):
+            return {k: _cast_to_signature(signature[k], v) for k, v in value.items()}
+
+        actual_type = extract_type(signature)
+
+        if issubclass(actual_type, Record) and isinstance(value, dict):
+            return actual_type(**value)
+        elif issubclass(actual_type, Mapping):
+            v_type = getattr(signature, "__args__", (Any, Any))
+            return actual_type(
+                {k: _cast_to_signature(v_type, v) for k, v in value.items()}
+            )
+        elif actual_type in (tuple, Tuple):
+            args = getattr(signature, "__args__", (Any,))
+            padded_args = right_pad_list(args, len(value), Any)
+            return tuple(
+                [_cast_to_signature(type_, v) for type_, v in zip(padded_args, value)]
+            )
+        elif issubclass(actual_type, Iterable):
+            type_ = getattr(signature, "__args__", (Any,))[0]
+            return actual_type([_cast_to_signature(type_, v) for v in value])
+        return value
+    except Exception as exp:
+        return value

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict, Tuple
 
 import pytest
 
@@ -91,7 +91,10 @@ def test_to_json():
     class Alpha(Enum):
         OPAQUE = None
         TRANSLUCENT_AS_NUM = (Number,)
+        TRANSLUCENT_AS_LIST = List[Number]
         TRANSLUCENT_AS_DICT = {"num": int, "decimals": List[str]}
+        TRANSLUCENT_AS_DICT_ANNOTATION = Dict[str, int]
+        TRANSLUCENT_AS_TUPLE_ANNOTATION = Tuple[int, ...]
 
     test_data = [
         (Alpha.OPAQUE, 'Alpha.OPAQUE: "OPAQUE"'),
@@ -100,8 +103,25 @@ def test_to_json():
             'Alpha.TRANSLUCENT_AS_NUM: [{"num": 12, "decimals": [8, 7]}]',
         ),
         (
+            Alpha.TRANSLUCENT_AS_LIST([Number(num=20, decimals=[80, 7])]),
+            'Alpha.TRANSLUCENT_AS_LIST: [{"num": 20, "decimals": [80, 7]}]',
+        ),
+        (
             Alpha.TRANSLUCENT_AS_DICT(dict(num=24, decimals=[8, 6])),
             'Alpha.TRANSLUCENT_AS_DICT: {"num": 24, "decimals": [8, 6]}',
+        ),
+        (
+            Alpha.TRANSLUCENT_AS_DICT_ANNOTATION(dict(num=204, decimal=8)),
+            'Alpha.TRANSLUCENT_AS_DICT_ANNOTATION: {"num": 204, "decimal": 8}',
+        ),
+        (
+            Alpha.TRANSLUCENT_AS_TUPLE_ANNOTATION(
+                (
+                    204,
+                    8,
+                )
+            ),
+            "Alpha.TRANSLUCENT_AS_TUPLE_ANNOTATION: [204, 8]",
         ),
     ]
 
@@ -120,7 +140,10 @@ def test_from_json():
     class Alpha(Enum):
         OPAQUE = None
         TRANSLUCENT_AS_NUM = (Number,)
+        TRANSLUCENT_AS_LIST = List[Number]
         TRANSLUCENT_AS_DICT = {"num": int, "decimals": List[str]}
+        TRANSLUCENT_AS_DICT_ANNOTATION = Dict[str, int]
+        TRANSLUCENT_AS_TUPLE_ANNOTATION = Tuple[int, ...]
 
     test_data = [
         ('Alpha.OPAQUE: "OPAQUE"', Alpha.OPAQUE),
@@ -129,8 +152,25 @@ def test_from_json():
             Alpha.TRANSLUCENT_AS_NUM(Number(num=12, decimals=[8, 7])),
         ),
         (
+            'Alpha.TRANSLUCENT_AS_LIST: [{"num": 20, "decimals": [80, 7]}]',
+            Alpha.TRANSLUCENT_AS_LIST([Number(num=20, decimals=[80, 7])]),
+        ),
+        (
             'Alpha.TRANSLUCENT_AS_DICT: {"num": 24, "decimals": [8, 6]}',
             Alpha.TRANSLUCENT_AS_DICT(dict(num=24, decimals=[8, 6])),
+        ),
+        (
+            'Alpha.TRANSLUCENT_AS_DICT_ANNOTATION: {"num": 204, "decimal": 8}',
+            Alpha.TRANSLUCENT_AS_DICT_ANNOTATION(dict(num=204, decimal=8)),
+        ),
+        (
+            "Alpha.TRANSLUCENT_AS_TUPLE_ANNOTATION: [204, 8]",
+            Alpha.TRANSLUCENT_AS_TUPLE_ANNOTATION(
+                (
+                    204,
+                    8,
+                )
+            ),
         ),
     ]
 

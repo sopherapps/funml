@@ -83,3 +83,35 @@ def test_get_cls_defaults():
         "misc": {},
         "head": "John",
     }
+
+
+def test_right_pad_list():
+    """right_pad_list pads a given list with the given fill_value"""
+    test_data = [
+        ([5, 6], "foo", 4, [5, 6, "foo", "foo"]),
+        (
+            (
+                5,
+                6,
+            ),
+            "foo",
+            4,
+            [5, 6, "foo", "foo"],
+        ),
+        ([5, 6], "foo", 1, [5, 6]),
+        (
+            (
+                5,
+                6,
+            ),
+            "foo",
+            1,
+            [5, 6],
+        ),
+    ]
+
+    for items, fill_value, target_length, expected in test_data:
+        padded_list = fn_utils.right_pad_list(
+            items, fill_value=fill_value, target_length=target_length
+        )
+        assert padded_list == expected
