@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.12] - 2023-02-23
+
+### Added
+
+### Changed
+
+### Fixed
+
+- Fix TypeError: isinstance() arg 2 must be a type or tuple of types when records have Enum fields
+
 ## [0.3.11] - 2023-02-21
 
 ### Added
