@@ -2,12 +2,11 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from os import PathLike
-from pathlib import PurePath
 from typing import Optional, List, Any
 
 import pytest
 
-from funml import record, to_dict
+from funml import record, to_dict, Enum
 
 
 def test_records_created():
@@ -128,6 +127,12 @@ def test_generic_alias_fields():
         description: ...
         func: Callable[[int], Any]
         path: bytes | PathLike[bytes] | str = ""
+        branch: "Branch"
+
+    class Branch(Enum):
+        HeadOffice = None
+        Arua = None
+        Nebbi = None
 
     echo = lambda v: v
 
@@ -139,6 +144,7 @@ def test_generic_alias_fields():
         is_active=False,
         description="security",
         func=echo,
+        branch=Branch.Arua,
     )
     it_dept = Department(
         seniors=["Paul"],
@@ -148,6 +154,7 @@ def test_generic_alias_fields():
         is_active=True,
         description="it",
         func=echo,
+        branch=Branch.Nebbi,
     )
     hr_dept = Department(
         seniors=["Stella", "Isingoma"],
@@ -157,6 +164,7 @@ def test_generic_alias_fields():
         is_active=False,
         description=4,
         func=echo,
+        branch=Branch.HeadOffice,
     )
 
     another_security_dept = Department(
@@ -167,6 +175,7 @@ def test_generic_alias_fields():
         is_active=False,
         description="security",
         func=echo,
+        branch=Branch.Arua,
     )
     another_it_dept = Department(
         seniors=["Paul"],
@@ -176,6 +185,7 @@ def test_generic_alias_fields():
         is_active=True,
         description="it",
         func=echo,
+        branch=Branch.Nebbi,
     )
     another_hr_dept = Department(
         seniors=["Stella", "Isingoma"],
@@ -185,6 +195,7 @@ def test_generic_alias_fields():
         is_active=False,
         description=4,
         func=echo,
+        branch=Branch.HeadOffice,
     )
 
     assert security_dept == another_security_dept
