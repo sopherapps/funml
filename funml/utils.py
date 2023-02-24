@@ -294,6 +294,8 @@ def _parse_type_str(
             # ignore types that are not supported in the given version
             return Any
         raise exp
+    except NameError as exp:
+        return LazyImport(module_name=__module_name, name=value)
 
 
 class LazyImport:

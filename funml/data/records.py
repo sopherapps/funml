@@ -93,7 +93,10 @@ def record(cls: Type[R]) -> Type[R]:
     return dataclasses.dataclass(
         type(
             cls.__name__,
-            (Record,),
+            (
+                Record,
+                cls,
+            ),
             {
                 "__annotations__": annotations,
                 "__slots__": tuple(annotations.keys()),

@@ -29,7 +29,7 @@ def to_json(value: Any) -> str:
 
 def _enum_to_json(item: Enum) -> str:
     """Converts an enum into JSON string"""
-    return f"{item.name}: {to_json(item.value)}"
+    return f'"{item.name}: {to_json(item.value)}"'
 
 
 def _record_to_json(item: Record) -> str:

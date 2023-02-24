@@ -218,6 +218,7 @@ class Enum(types.MLType):
         """See Base Class: [`MLType`][funml.types.MLType]"""
         try:
             full_name, value = value.split(": ", maxsplit=1)
+            value = value[:-1]
             _, name = full_name.split(".", maxsplit=1)
             variant = getattr(cls, name)
 

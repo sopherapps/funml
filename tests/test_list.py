@@ -99,7 +99,7 @@ def test_to_json():
         favorite_color: "Color"
 
     @record
-    class Color(Enum):
+    class Color:
         r: int
         g: int
         b: int
@@ -111,8 +111,8 @@ def test_to_json():
 
     test_data = [
         (l(2, 3, 5), "[2, 3, 5]"),
-        (l("foo", 6.0), "['foo', 6.0]"),
-        (l(True, -6.0, 7), "[True, -6.0, 7]"),
+        (l("foo", 6.0), '["foo", 6.0]'),
+        (l(True, -6.0, 7), "[true, -6.0, 7]"),
         (
             l(
                 True,
@@ -121,9 +121,9 @@ def test_to_json():
             ),
             (
                 "["
-                "True, "
-                "{'r': 8, 'g': 4, 'b': 78, 'a': 'Alpha.OPAQUE: (OPAQUE,)'}, "
-                "{'r': 55, 'g': 40, 'b': 9, 'a': 'Alpha.TRANSLUCENT: (0.4,)'}"
+                "true, "
+                '{"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: "OPAQUE""}, '
+                '{"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}'
                 "]"
             ),
         ),
@@ -141,9 +141,9 @@ def test_to_json():
             ),
             (
                 "["
-                "True, "
-                "{'name': 'John Doe', 'favorite_color': {'r': 8, 'g': 4, 'b': 78, 'a': 'Alpha.OPAQUE: (OPAQUE,)'}}, "
-                "{'name': 'Jane Doe', 'favorite_color': {'r': 55, 'g': 40, 'b': 9, 'a': 'Alpha.TRANSLUCENT: (0.4,)'}}"
+                "true, "
+                '{"name": "John Doe", "favorite_color": {"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: "OPAQUE""}}, '
+                '{"name": "Jane Doe", "favorite_color": {"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}}'
                 "]"
             ),
         ),
