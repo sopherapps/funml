@@ -248,7 +248,7 @@ def test_dict():
 
 
 def test_to_json():
-    """to_json method transforms enum into a JSON string representation of record"""
+    """to_json transforms record into a JSON string representation of record"""
 
     @record
     class Student:
@@ -256,7 +256,7 @@ def test_to_json():
         favorite_color: "Color"
 
     @record
-    class Color(Enum):
+    class Color:
         r: int
         g: int
         b: int
@@ -269,25 +269,25 @@ def test_to_json():
     test_data = [
         (
             Color(r=8, g=4, b=78, a=Alpha.OPAQUE),
-            "{'r': 8, 'g': 4, 'b': 78, 'a': 'Alpha.OPAQUE: (OPAQUE,)'}",
+            '{"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: "OPAQUE""}',
         ),
         (
             Color(r=55, g=40, b=9, a=Alpha.TRANSLUCENT(0.4)),
-            "{'r': 55, 'g': 40, 'b': 9, 'a': 'Alpha.TRANSLUCENT: (0.4,)'}",
+            '{"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}',
         ),
         (
             Student(
                 name="John Doe",
                 favorite_color=Color(r=8, g=4, b=78, a=Alpha.OPAQUE),
             ),
-            "{'name': 'John Doe', 'favorite_color': {'r': 8, 'g': 4, 'b': 78, 'a': 'Alpha.OPAQUE: (OPAQUE,)'}}",
+            '{"name": "John Doe", "favorite_color": {"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: "OPAQUE""}}',
         ),
         (
             Student(
                 name="Jane Doe",
                 favorite_color=Color(r=55, g=40, b=9, a=Alpha.TRANSLUCENT(0.4)),
             ),
-            "{'name': 'Jane Doe', 'favorite_color': {'r': 55, 'g': 40, 'b': 9, 'a': 'Alpha.TRANSLUCENT: (0.4,)'}}",
+            '{"name": "Jane Doe", "favorite_color": {"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}}',
         ),
     ]
 
