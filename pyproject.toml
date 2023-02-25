@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "funml"
-version = "0.3.12"
+version = "0.3.13"
 description = "A collection of utilities to help write python as though it were an ML-kind of functional language like OCaml"
 authors = ["Martin <team.sopherapps@gmail.com>"]
 readme = "README.md"
