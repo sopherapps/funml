@@ -1,12 +1,14 @@
+from typing import List, Dict, Tuple
+
 import pytest
 
-from funml import Option, Result, data
+from funml import Option, Result, Enum, record, to_json, from_json
 
 
 def test_enum_creation():
     """enum and e are used to create enums"""
 
-    class Date(data.enum.Enum):
+    class Date(Enum):
         January = int
         February = int
         March = int
@@ -76,3 +78,121 @@ def test_enum_name():
     assert Result.ERR(TypeError("some error")).name == "Result.ERR"
     assert Option.NONE.name == "Option.NONE"
     assert Option.SOME(345.89).name == "Option.SOME"
+
+
+def test_to_json():
+    """to_json transforms enum into a JSON string representation of enum"""
+
+    @record
+    class Number:
+        num: int
+        decimals: List[int]
+
+    class Alpha(Enum):
+        OPAQUE = None
+        TRANSLUCENT_AS_NUM = (Number,)
+        TRANSLUCENT_AS_LIST = List[Number]
+        TRANSLUCENT_AS_DICT = {"num": int, "decimals": List[str]}
+        TRANSLUCENT_AS_DICT_ANNOTATION = Dict[str, int]
+        TRANSLUCENT_AS_TUPLE_ANNOTATION = Tuple[int, ...]
+
+    test_data = [
+        (Alpha.OPAQUE, '"Alpha.OPAQUE: "OPAQUE""'),
+        (
+            Alpha.TRANSLUCENT_AS_NUM(Number(num=12, decimals=[8, 7])),
+            '"Alpha.TRANSLUCENT_AS_NUM: [{"num": 12, "decimals": [8, 7]}]"',
+        ),
+        (
+            Alpha.TRANSLUCENT_AS_LIST([Number(num=20, decimals=[80, 7])]),
+            '"Alpha.TRANSLUCENT_AS_LIST: [{"num": 20, "decimals": [80, 7]}]"',
+        ),
+        (
+            Alpha.TRANSLUCENT_AS_DICT(dict(num=24, decimals=[8, 6])),
+            '"Alpha.TRANSLUCENT_AS_DICT: {"num": 24, "decimals": [8, 6]}"',
+        ),
+        (
+            Alpha.TRANSLUCENT_AS_DICT_ANNOTATION(dict(num=204, decimal=8)),
+            '"Alpha.TRANSLUCENT_AS_DICT_ANNOTATION: {"num": 204, "decimal": 8}"',
+        ),
+        (
+            Alpha.TRANSLUCENT_AS_TUPLE_ANNOTATION(
+                (
+                    204,
+                    8,
+                )
+            ),
+            '"Alpha.TRANSLUCENT_AS_TUPLE_ANNOTATION: [204, 8]"',
+        ),
+    ]
+
+    for item, expected in test_data:
+        assert to_json(item) == expected
+
+
+def test_from_json():
+    """from_json transforms a JSON string representation into an Enum"""
+
+    @record
+    class Number:
+        num: int
+        decimals: List[int]
+
+    class Alpha(Enum):
+        OPAQUE = None
+        TRANSLUCENT_AS_NUM = (Number,)
+        TRANSLUCENT_AS_LIST = List[Number]
+        TRANSLUCENT_AS_DICT = {"num": int, "decimals": List[str]}
+        TRANSLUCENT_AS_DICT_ANNOTATION = Dict[str, int]
+        TRANSLUCENT_AS_TUPLE_ANNOTATION = Tuple[int, ...]
+
+    test_data = [
+        ('"Alpha.OPAQUE: "OPAQUE""', Alpha.OPAQUE),
+        (
+            '"Alpha.TRANSLUCENT_AS_NUM: [{"num": 12, "decimals": [8, 7]}]"',
+            Alpha.TRANSLUCENT_AS_NUM(Number(num=12, decimals=[8, 7])),
+        ),
+        (
+            '"Alpha.TRANSLUCENT_AS_LIST: [{"num": 20, "decimals": [80, 7]}]"',
+            Alpha.TRANSLUCENT_AS_LIST([Number(num=20, decimals=[80, 7])]),
+        ),
+        (
+            '"Alpha.TRANSLUCENT_AS_DICT: {"num": 24, "decimals": [8, 6]}"',
+            Alpha.TRANSLUCENT_AS_DICT(dict(num=24, decimals=[8, 6])),
+        ),
+        (
+            '"Alpha.TRANSLUCENT_AS_DICT_ANNOTATION: {"num": 204, "decimal": 8}"',
+            Alpha.TRANSLUCENT_AS_DICT_ANNOTATION(dict(num=204, decimal=8)),
+        ),
+        (
+            '"Alpha.TRANSLUCENT_AS_TUPLE_ANNOTATION: [204, 8]"',
+            Alpha.TRANSLUCENT_AS_TUPLE_ANNOTATION(
+                (
+                    204,
+                    8,
+                )
+            ),
+        ),
+    ]
+
+    for item, expected in test_data:
+        assert from_json(Alpha, item) == expected
+
+
+def test_from_json_strict():
+    """from_json with strict transforms a JSON string representation into an Enum or errors"""
+
+    class Alpha(Enum):
+        OPAQUE = None
+        TRANSLUCENT = float
+
+    test_data = [
+        '"Alph.OPAQUE: "OPAQUE""',
+        '"OPAQUE: "OPAQUE""',
+        '"TRANSLUCENT: 0.9"',
+    ]
+
+    for item in test_data:
+        with pytest.raises(ValueError, match=r"unable to deserialize JSON.*"):
+            from_json(Alpha, item)
+
+        assert from_json(Alpha, item, strict=False) == item

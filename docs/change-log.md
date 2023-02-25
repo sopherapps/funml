@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.13] - 2023-02-25
+
+### Added
+
+- Added `to_json` and `from_json` builtin expressions
+
+### Changed
+
+- Changed `IList` to a generic subscriptable type just like `List` e.g. `IList[str]`
+
+### Fixed
+
+- Fixed how records load lazy annotations
+
 ## [0.3.12] - 2023-02-23
 
 ### Added

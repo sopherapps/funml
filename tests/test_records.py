@@ -6,7 +6,7 @@ from typing import Optional, List, Any
 
 import pytest
 
-from funml import record, to_dict, Enum
+from funml import record, to_dict, Enum, to_json, from_json
 
 
 def test_records_created():
@@ -245,3 +245,157 @@ def test_dict():
     for data in test_data:
         dept = Department(**data)
         assert to_dict(dept) == data
+
+
+def test_to_json():
+    """to_json transforms record into a JSON string representation of record"""
+
+    @record
+    class Student:
+        name: str
+        favorite_color: "Color"
+
+    @record
+    class Color:
+        r: int
+        g: int
+        b: int
+        a: "Alpha"
+
+    class Alpha(Enum):
+        OPAQUE = None
+        TRANSLUCENT = float
+
+    test_data = [
+        (
+            Color(r=8, g=4, b=78, a=Alpha.OPAQUE),
+            '{"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: "OPAQUE""}',
+        ),
+        (
+            Color(r=55, g=40, b=9, a=Alpha.TRANSLUCENT(0.4)),
+            '{"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}',
+        ),
+        (
+            Student(
+                name="John Doe",
+                favorite_color=Color(r=8, g=4, b=78, a=Alpha.OPAQUE),
+            ),
+            '{"name": "John Doe", "favorite_color": {"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: "OPAQUE""}}',
+        ),
+        (
+            Student(
+                name="Jane Doe",
+                favorite_color=Color(r=55, g=40, b=9, a=Alpha.TRANSLUCENT(0.4)),
+            ),
+            '{"name": "Jane Doe", "favorite_color": {"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}}',
+        ),
+    ]
+
+    for item, expected in test_data:
+        assert to_json(item) == expected
+
+
+def test_from_json_strict():
+    """from_json with strict transforms a JSON string representation into an Record, raising ValueError if it can't"""
+
+    @record
+    class Student:
+        name: str
+        favorite_color: "Color"
+
+    @record
+    class Color:
+        r: int
+        g: int
+        b: int
+        a: "Alpha"
+
+    class Alpha(Enum):
+        OPAQUE = None
+        TRANSLUCENT = float
+
+    test_data = [
+        (
+            Color,
+            '{"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: \\"OPAQUE\\""}',
+            Color(r=8, g=4, b=78, a=Alpha.OPAQUE),
+        ),
+        (
+            Color,
+            '{"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}',
+            Color(r=55, g=40, b=9, a=Alpha.TRANSLUCENT(0.4)),
+        ),
+        (
+            Student,
+            '{"name": "John Doe", "favorite_color": {"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: \\"OPAQUE\\""}}',
+            Student(
+                name="John Doe",
+                favorite_color=Color(r=8, g=4, b=78, a=Alpha.OPAQUE),
+            ),
+        ),
+        (
+            Student,
+            '{"name": "Jane Doe", "favorite_color": {"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}}',
+            Student(
+                name="Jane Doe",
+                favorite_color=Color(r=55, g=40, b=9, a=Alpha.TRANSLUCENT(0.4)),
+            ),
+        ),
+    ]
+
+    for cls, item, expected in test_data:
+        assert from_json(cls, item) == expected
+
+
+def test_from_json_not_strict():
+    """non-strict from_json transforms a JSON string representation into an Record,
+    returning the default json-parsed value if an error occurs"""
+
+    @record
+    class Student:
+        name: str
+        favorite_color: "Color"
+
+    @record
+    class Color:
+        r: int
+        g: int
+        b: int
+        a: "Alpha"
+
+    class Alpha(Enum):
+        OPAQUE = None
+        TRANSLUCENT = float
+
+    test_data = [
+        (
+            Color,
+            '["r", 8, "g", 4, "b", 78, "a", "Alpha.OPAQUE: \\"OPAQUE\\""]',
+            ["r", 8, "g", 4, "b", 78, "a", 'Alpha.OPAQUE: "OPAQUE"'],
+        ),
+        (Color, '"foo"', "foo"),
+        (
+            Student,
+            '{"name": "John Doe", "favorite_color": 9}',
+            {"name": "John Doe", "favorite_color": 9},
+        ),
+        (
+            Student,
+            '{"name": 90, "favorite_color": {"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}}',
+            {
+                "name": 90,
+                "favorite_color": {
+                    "r": 55,
+                    "g": 40,
+                    "b": 9,
+                    "a": "Alpha.TRANSLUCENT: 0.4",
+                },
+            },
+        ),
+    ]
+
+    for cls, item, expected in test_data:
+        assert from_json(cls, item, strict=False) == expected
+
+        with pytest.raises(ValueError, match=r"unable to deserialize JSON.*"):
+            from_json(cls, item)
