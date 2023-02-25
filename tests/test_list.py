@@ -1,5 +1,7 @@
 from typing import Any
 
+import pytest
+
 from funml import l, imap, ifilter, ireduce, Enum, record, to_json
 from funml.data.lists import IList
 from funml.json import from_json
@@ -176,9 +178,7 @@ def test_from_json_strict():
         TRANSLUCENT = float
 
     test_data = [
-        # ("[2, 3, 5]", IList[Any], l(2, 3, 5)),
-        # ('["foo", 6.0]', IList[str], l("foo", 6.0)),
-        # ("[true, -6.0, 7]", IList[int], l(1, -6, 7)),
+        ("[2, 3, 5]", IList[Any], l(2, 3, 5)),
         (
             (
                 "["
@@ -192,29 +192,41 @@ def test_from_json_strict():
                 Color(r=55, g=40, b=9, a=Alpha.TRANSLUCENT(0.4)),
             ),
         ),
-        # (
-        #     (
-        #         "["
-        #         '{"name": "John Doe", "favorite_color": {"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: "OPAQUE""}}, '
-        #         '{"name": "Jane Doe", "favorite_color": {"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}}'
-        #         "]"
-        #     ),
-        #     IList[Student],
-        #     l(
-        #         Student(
-        #             name="John Doe", favorite_color=Color(r=8, g=4, b=78, a=Alpha.OPAQUE)
-        #         ),
-        #         Student(
-        #             name="Jane Doe",
-        #             favorite_color=Color(r=55, g=40, b=9, a=Alpha.TRANSLUCENT(0.4)),
-        #         ),
-        #     ),
-        # ),
+        (
+            (
+                "["
+                '{"name": "John Doe", "favorite_color": {"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: \\"OPAQUE\\""}}, '
+                '{"name": "Jane Doe", "favorite_color": {"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}}'
+                "]"
+            ),
+            IList[Student],
+            l(
+                Student(
+                    name="John Doe",
+                    favorite_color=Color(r=8, g=4, b=78, a=Alpha.OPAQUE),
+                ),
+                Student(
+                    name="Jane Doe",
+                    favorite_color=Color(r=55, g=40, b=9, a=Alpha.TRANSLUCENT(0.4)),
+                ),
+            ),
+        ),
+    ]
+
+    error_test_data = [
+        ('["foo", 6.0]', IList[str]),
+        ("[true, -6.0, 7]", IList[int]),
     ]
 
     for item, type_, expected in test_data:
-        got = from_json(type_=type_, value=item, strict=True)
+        got = from_json(type_=type_, value=item)
         assert got == expected
+
+    for item, type_ in error_test_data:
+        with pytest.raises(
+            ValueError, match=r".* value .* should be of type: .*, got .*"
+        ):
+            from_json(type_=type_, value=item)
 
 
 def test_from_json_not_strict():
@@ -244,7 +256,7 @@ def test_from_json_not_strict():
             (
                 "["
                 "true, "
-                '{"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: "OPAQUE""}, '
+                '{"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: \\"OPAQUE\\""}, '
                 '{"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}'
                 "]"
             ),
@@ -258,7 +270,7 @@ def test_from_json_not_strict():
         (
             (
                 "["
-                '{"name": "John Doe", "favorite_color": {"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: "OPAQUE""}}, '
+                '{"name": "John Doe", "favorite_color": {"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: \\"OPAQUE\\""}}, '
                 '"foo", '
                 '{"name": "Jane Doe", "favorite_color": {"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}}'
                 "]"

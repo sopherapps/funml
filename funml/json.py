@@ -1,5 +1,6 @@
 """Deals with conversion to and from JSON strings.
 """
+import inspect
 import json
 from typing import Any, TypeVar, Type, Mapping, Tuple, Union, Dict
 
@@ -72,21 +73,45 @@ def from_json(type_: Type[T], value: str, strict=True) -> T:
         ValueError: unable to deserialize JSON to given type
     """
     actual_type = extract_type(type_)
-    if issubclass(actual_type, Enum):
-        return _enum_from_json(actual_type, value, strict)
-    if issubclass(actual_type, Record):
-        return _record_from_json(actual_type, value, strict)
-    if issubclass(actual_type, IList):
-        return _i_list_from_json(type_, value, strict)
+    frame = inspect.currentframe()
 
-    obj = json.loads(value)
-    if strict:
-        return _cast_to_annotation(type_, value=obj)
-    else:
-        return _try_cast_to_annotation(type_, value=obj)
+    try:
+        _globals = frame.f_back.f_globals
+        _locals = frame.f_back.f_locals
+
+        if issubclass(actual_type, Enum):
+            return _enum_from_json(
+                actual_type, value, strict, _globals=_globals, _locals=_locals
+            )
+        if issubclass(actual_type, Record):
+            return _record_from_json(
+                actual_type, value, strict, _globals=_globals, _locals=_locals
+            )
+        if issubclass(actual_type, IList):
+            return _i_list_from_json(
+                type_, value, strict, _globals=_globals, _locals=_locals
+            )
+
+        obj = json.loads(value)
+        if strict:
+            return _cast_to_annotation(
+                type_, value=obj, _globals=_globals, _locals=_locals
+            )
+        else:
+            return _try_cast_to_annotation(
+                type_, value=obj, _globals=_globals, _locals=_locals
+            )
+    finally:
+        del frame
 
 
-def _enum_from_json(type_: Type[Enum], value: str, strict: bool) -> Union[Enum, Any]:
+def _enum_from_json(
+    type_: Type[Enum],
+    value: str,
+    strict: bool,
+    _globals: Dict[str, Any] = ...,
+    _locals: Dict[str, Any] = ...,
+) -> Union[Enum, Any]:
     """Converts a JSON string to an Enum.
 
     If strict is True, an error is raised if JSON cannot be turned into the Enum
@@ -97,8 +122,9 @@ def _enum_from_json(type_: Type[Enum], value: str, strict: bool) -> Union[Enum, 
         ValueError: unable to deserialize JSON to given type
     """
     try:
-        # enum json value has '"' at the beginning and at the end thus the slicing
-        full_name, data = value[1:-1].split(": ", maxsplit=1)
+        # enum json value has '"' at the beginning and at the end thus the stripping
+        value_as_str = value.strip('"')
+        full_name, data = value_as_str.split(": ", maxsplit=1)
         enum_name, name = full_name.split(".", maxsplit=1)
 
         if enum_name != type_.__name__:
@@ -110,7 +136,7 @@ def _enum_from_json(type_: Type[Enum], value: str, strict: bool) -> Union[Enum, 
 
         if variant.signature is not None:
             data = json.loads(data)
-            data = _cast_to_signature(variant.signature, data)
+            data = _cast_to_signature(variant.signature, data, _globals, _locals)
 
             if isinstance(variant.signature, tuple):
                 return variant(*data)
@@ -121,13 +147,17 @@ def _enum_from_json(type_: Type[Enum], value: str, strict: bool) -> Union[Enum, 
     except Exception as exp:
         if strict:
             raise ValueError(
-                f"unable to deserialize JSON {value} to {type_}. The following error occurred {exp}"
+                f"unable to deserialize JSON {value} to {type_}. The following error occurred: {exp}"
             )
         return value
 
 
 def _record_from_json(
-    type_: Type[Record], value: str, strict: bool
+    type_: Type[Record],
+    value: str,
+    strict: bool,
+    _globals: Dict[str, Any] = ...,
+    _locals: Dict[str, Any] = ...,
 ) -> Union[Record, Any]:
     """Converts a JSON string to a record
 
@@ -142,7 +172,9 @@ def _record_from_json(
         obj = json.loads(value)
 
         try:
-            parsed_obj = _cast_to_signature(type_.__annotations__, value=obj)
+            parsed_obj = _cast_to_signature(
+                type_.__annotations__, obj, _globals, _locals
+            )
             return type_(**parsed_obj)
         except Exception as exp:
             if strict:
@@ -151,12 +183,16 @@ def _record_from_json(
 
     except Exception as exp:
         raise ValueError(
-            f"unable to deserialize JSON {value} to {type_}. The following error occurred {exp}"
+            f"unable to deserialize JSON {value} to {type_}. The following error occurred: {exp}"
         )
 
 
 def _i_list_from_json(
-    type_: Type[IList[T]], value: str, strict: bool
+    type_: Type[IList[T]],
+    value: str,
+    strict: bool,
+    _globals: Dict[str, Any] = ...,
+    _locals: Dict[str, Any] = ...,
 ) -> Union[IList[T], IList[Any]]:
     """Converts a JSON string to an IList.
 
@@ -172,17 +208,24 @@ def _i_list_from_json(
         item_type = getattr(type_, "__args__", (Any,))[0]
 
         if strict:
-            return IList(*[_cast_to_annotation(item_type, v) for v in items])
+            return IList(
+                *[_cast_to_annotation(item_type, v, _globals, _locals) for v in items]
+            )
 
-        return IList(*[_try_cast_to_annotation(item_type, v) for v in items])
+        return IList(
+            *[_try_cast_to_annotation(item_type, v, _globals, _locals) for v in items]
+        )
     except Exception as exp:
         raise ValueError(
-            f"unable to deserialize JSON {value} to IList. The following error occurred {exp}"
+            f"unable to deserialize JSON {value} to IList. The following error occurred: {exp}"
         )
 
 
 def _cast_to_signature(
-    signature: Union[Tuple[Type, ...], Dict[str, Type], Type], value: Any
+    signature: Union[Tuple[Type, ...], Dict[str, Type], Type],
+    value: Any,
+    _globals: Dict[str, Any],
+    _locals: Dict[str, Any],
 ) -> Any:
     """Attempts to cast a value to a given signature.
 
@@ -199,54 +242,82 @@ def _cast_to_signature(
         if isinstance(signature, tuple):
             padded_sig = right_pad_list(signature, len(value), Any)
             return tuple(
-                [_cast_to_signature(type_, v) for type_, v in zip(padded_sig, value)]
+                [
+                    _cast_to_signature(type_, v, _globals, _locals)
+                    for type_, v in zip(padded_sig, value)
+                ]
             )
         elif isinstance(signature, dict):
-            return {k: _cast_to_signature(signature[k], v) for k, v in value.items()}
+            return {
+                k: _cast_to_signature(signature[k], v, _globals, _locals)
+                for k, v in value.items()
+            }
 
-        return _cast_to_annotation(signature, value=value)
+        return _cast_to_annotation(signature, value, _globals, _locals)
     except Exception as exp:
         return value
 
 
-def _try_cast_to_annotation(annotation: Type[T], value: Any) -> Union[T, Any]:
+def _try_cast_to_annotation(
+    annotation: Type[T], value: Any, _globals: Dict[str, Any], _locals: Dict[str, Any]
+) -> Union[T, Any]:
     """Tries to cast a given value to a given type, or returns the original value if it fails."""
     try:
-        return _cast_to_annotation(annotation, value=value)
+        return _cast_to_annotation(annotation, value, _globals, _locals)
     except Exception as exp:
         return value
 
 
-def _cast_to_annotation(annotation: Type[T], value: Any) -> T:
+def _cast_to_annotation(
+    annotation: Type[T], value: Any, _globals: Dict[str, Any], _locals: Dict[str, Any]
+) -> T:
     """Casts a given value to a given type annotation"""
     actual_type = extract_type(annotation)
 
     if issubclass(actual_type, Record) and isinstance(value, dict):
-        parsed_data = _cast_to_signature(actual_type.__annotations__, value=value)
+        actual_type._normalize(_globals, _locals)
+        parsed_data = _cast_to_signature(
+            actual_type.__annotations__, value, _globals, _locals
+        )
         return actual_type(**parsed_data)
 
     elif issubclass(actual_type, Enum) and isinstance(value, str):
-        return _enum_from_json(actual_type, value=value, strict=True)
+        return _enum_from_json(actual_type, value, True, _globals, _locals)
 
-    # elif issubclass(actual_type, IList):
-    #     type_ = getattr(annotation, "__args__", (Any,))[0]
-    #     return actual_type(*[_cast_to_annotation(type_, v) for v in value])
+    elif issubclass(actual_type, IList):
+        type_ = getattr(annotation, "__args__", (Any,))[0]
+        return actual_type(
+            *[_cast_to_annotation(type_, v, _globals, _locals) for v in value]
+        )
 
     elif issubclass(actual_type, Mapping):
         v_type = getattr(annotation, "__args__", (Any, Any))
         return actual_type(
-            {k: _cast_to_annotation(v_type, v) for k, v in value.items()}
+            {
+                k: _cast_to_annotation(v_type, v, _globals, _locals)
+                for k, v in value.items()
+            }
         )
 
     elif actual_type in (tuple, Tuple):
         args = getattr(annotation, "__args__", (Any,))
         padded_args = right_pad_list(args, len(value), Any)
         return tuple(
-            [_cast_to_annotation(type_, v) for type_, v in zip(padded_args, value)]
+            [
+                _cast_to_annotation(type_, v, _globals, _locals)
+                for type_, v in zip(padded_args, value)
+            ]
         )
 
     elif issubclass(actual_type, (list, set)):
         type_ = getattr(annotation, "__args__", (Any,))[0]
-        return actual_type([_cast_to_annotation(type_, v) for v in value])
+        return actual_type(
+            [_cast_to_annotation(type_, v, _globals, _locals) for v in value]
+        )
+
+    if actual_type not in (Any, ..., object) and actual_type != type(value):
+        raise TypeError(
+            f"value {value} should be of type: {actual_type}, got {type(value)}"
+        )
 
     return value
