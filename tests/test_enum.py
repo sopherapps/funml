@@ -3,6 +3,7 @@ from typing import List, Dict, Tuple
 import pytest
 
 from funml import Option, Result, Enum, record, to_json
+from funml.json import from_json
 
 
 def test_enum_creation():
@@ -130,7 +131,7 @@ def test_to_json():
 
 
 def test_from_json():
-    """from_json method transforms a JSON string representation into an Enum"""
+    """from_json transforms a JSON string representation into an Enum"""
 
     @record
     class Number:
@@ -175,4 +176,24 @@ def test_from_json():
     ]
 
     for item, expected in test_data:
-        assert Alpha.from_json(item) == expected
+        assert from_json(Alpha, item) == expected
+
+
+def test_from_json_strict():
+    """from_json with strict transforms a JSON string representation into an Enum or errors"""
+
+    class Alpha(Enum):
+        OPAQUE = None
+        TRANSLUCENT = float
+
+    test_data = [
+        '"Alph.OPAQUE: "OPAQUE""',
+        '"OPAQUE: "OPAQUE""',
+        '"TRANSLUCENT: 0.9"',
+    ]
+
+    for item in test_data:
+        with pytest.raises(ValueError):
+            from_json(Alpha, item)
+
+        assert from_json(Alpha, item, strict=False) == item

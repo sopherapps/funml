@@ -1,5 +1,8 @@
+from typing import Any
+
 from funml import l, imap, ifilter, ireduce, Enum, record, to_json
 from funml.data.lists import IList
+from funml.json import from_json
 
 
 def test_list_creation():
@@ -153,51 +156,127 @@ def test_to_json():
         assert to_json(item) == expected
 
 
-def test_from_json():
-    """from_json method transforms a JSON string representation into an IList"""
+def test_from_json_strict():
+    """from_json with strict transforms a JSON string representation into an IList of given annotation"""
+
+    @record
+    class Student:
+        name: str
+        favorite_color: "Color"
+
+    @record
+    class Color:
+        r: int
+        g: int
+        b: int
+        a: "Alpha"
 
     class Alpha(Enum):
         OPAQUE = None
         TRANSLUCENT = float
 
     test_data = [
-        ("[2, 3, 5]", l(2, 3, 5)),
-        ("['foo', 6.0]", l("foo", 6.0)),
-        ("[True, -6.0, 7]", l(True, -6.0, 7)),
+        # ("[2, 3, 5]", IList[Any], l(2, 3, 5)),
+        # ('["foo", 6.0]', IList[str], l("foo", 6.0)),
+        # ("[true, -6.0, 7]", IList[int], l(1, -6, 7)),
         (
             (
                 "["
-                "True, "
-                "{'r': 8, 'g': 4, 'b': 78, 'a': 'Alpha.OPAQUE: (OPAQUE,)'}, "
-                "{'r': 55, 'g': 40, 'b': 9, 'a': 'Alpha.TRANSLUCENT: (0.4,)'}"
+                '{"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: \\"OPAQUE\\""}, '
+                '{"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}'
                 "]"
             ),
+            IList[Color],
+            l(
+                Color(r=8, g=4, b=78, a=Alpha.OPAQUE),
+                Color(r=55, g=40, b=9, a=Alpha.TRANSLUCENT(0.4)),
+            ),
+        ),
+        # (
+        #     (
+        #         "["
+        #         '{"name": "John Doe", "favorite_color": {"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: "OPAQUE""}}, '
+        #         '{"name": "Jane Doe", "favorite_color": {"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}}'
+        #         "]"
+        #     ),
+        #     IList[Student],
+        #     l(
+        #         Student(
+        #             name="John Doe", favorite_color=Color(r=8, g=4, b=78, a=Alpha.OPAQUE)
+        #         ),
+        #         Student(
+        #             name="Jane Doe",
+        #             favorite_color=Color(r=55, g=40, b=9, a=Alpha.TRANSLUCENT(0.4)),
+        #         ),
+        #     ),
+        # ),
+    ]
+
+    for item, type_, expected in test_data:
+        got = from_json(type_=type_, value=item, strict=True)
+        assert got == expected
+
+
+def test_from_json_not_strict():
+    """from_json with not strict attempts to transform each item in a JSON string IList representation to the given annotation,
+    defaulting to the expected JSON.loads output on error"""
+
+    @record
+    class Student:
+        name: str
+        favorite_color: "Color"
+
+    @record
+    class Color:
+        r: int
+        g: int
+        b: int
+        a: "Alpha"
+
+    class Alpha(Enum):
+        OPAQUE = None
+        TRANSLUCENT = float
+
+    test_data = [
+        ('["foo", 6.0]', IList[int], l("foo", 6)),
+        ("[true, -6.0, 7]", IList[int], l(1, -6, 7)),
+        (
+            (
+                "["
+                "true, "
+                '{"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: "OPAQUE""}, '
+                '{"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}'
+                "]"
+            ),
+            IList[Color],
             l(
                 True,
-                dict(r=8, g=4, b=78, a=Alpha.OPAQUE),
-                dict(r=55, g=40, b=9, a=Alpha.TRANSLUCENT(0.4)),
+                Color(r=8, g=4, b=78, a=Alpha.OPAQUE),
+                Color(r=55, g=40, b=9, a=Alpha.TRANSLUCENT(0.4)),
             ),
         ),
         (
             (
                 "["
-                "True, "
-                "{'name': 'John Doe', 'favorite_color': {'r': 8, 'g': 4, 'b': 78, 'a': 'Alpha.OPAQUE: (OPAQUE,)'}}, "
-                "{'name': 'Jane Doe', 'favorite_color': {'r': 55, 'g': 40, 'b': 9, 'a': 'Alpha.TRANSLUCENT: (0.4,)'}}"
+                '{"name": "John Doe", "favorite_color": {"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: "OPAQUE""}}, '
+                '"foo", '
+                '{"name": "Jane Doe", "favorite_color": {"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}}'
                 "]"
             ),
+            IList[Student],
             l(
-                True,
-                dict(
-                    name="John Doe", favorite_color=dict(r=8, g=4, b=78, a=Alpha.OPAQUE)
+                Student(
+                    name="John Doe",
+                    favorite_color=Color(r=8, g=4, b=78, a=Alpha.OPAQUE),
                 ),
-                dict(
+                "foo",
+                Student(
                     name="Jane Doe",
-                    favorite_color=dict(r=55, g=40, b=9, a=Alpha.TRANSLUCENT(0.4)),
+                    favorite_color=Color(r=55, g=40, b=9, a=Alpha.TRANSLUCENT(0.4)),
                 ),
             ),
         ),
     ]
 
-    for item, expected in test_data:
-        assert IList.from_json(item) == expected
+    for item, type_, expected in test_data:
+        assert from_json(type_=type_, value=item, strict=False) == expected

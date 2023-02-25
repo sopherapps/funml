@@ -35,7 +35,7 @@ Typical Usage:
 """
 import json
 from functools import reduce
-from typing import Any, Optional, Callable, List, Tuple, Union
+from typing import Any, Optional, Callable, List, Tuple, Union, TypeVar, Generic
 
 from funml import types, utils
 from funml.types import Expression, Operation
@@ -143,32 +143,35 @@ def ireduce(
     return Expression(op)
 
 
-class IList(types.MLType):
+T = TypeVar("T")
+
+
+class IList(types.MLType, Generic[T]):
     """An immutable list of items of any type.
 
     Args:
         args: the items to be included in the list.
     """
 
-    def __init__(self, *args: Any):
+    def __init__(self, *args: T):
         self.__size: Optional[int] = None
         self.__capture_start: Optional[int] = None
         self.__capture_tail_len: int = 0
-        self.__pre_capture: Optional[List[Any]] = None
-        self.__post_capture: Optional[List[Any]] = None
-        self.__list: Optional[List[Any]] = None
+        self.__pre_capture: Optional[List[T]] = None
+        self.__post_capture: Optional[List[T]] = None
+        self.__list: Optional[List[T]] = None
         self._head: Optional["_Node"] = None
 
         self.__set_size_from_args(args)
         self.__initialize_from_tuple(args)
 
     @property
-    def head(self) -> Any:
+    def head(self) -> T:
         """The first item in the list."""
         return self._head.value
 
     @property
-    def tail(self) -> "IList":
+    def tail(self) -> "IList[T]":
         """A new slice of the list containing all items except the first."""
         return IList.__from_node(self._head.next)
 
@@ -201,40 +204,29 @@ class IList(types.MLType):
             schema=self._pre_capture, actual=pre_capture
         ) and _lists_match(schema=self._post_capture, actual=post_capture)
 
-    @classmethod
-    def from_json(cls, value: str) -> "IList":
-        """See Base Class: [`MLType`][funml.types.MLType]"""
-        try:
-            items = json.loads(value)
-            return cls(*items)
-        except Exception as exp:
-            raise ValueError(
-                f"unable to deserialize JSON {value} to {cls}. The following error occurred {exp}"
-            )
-
     @property
-    def _size(self):
+    def _size(self) -> int:
         """The number of items in the list."""
         if self.__size is None:
             self.__size = len(self._self_list)
         return self.__size
 
     @property
-    def _self_list(self):
+    def _self_list(self) -> List[T]:
         """A cache of the native list that corresponds to this list."""
         if self.__list is None:
             self.__list = list(self.__iter__())
         return self.__list
 
     @property
-    def _pre_capture(self):
+    def _pre_capture(self) -> List[T]:
         """A slice of the list pattern before the section to be captured when matching."""
         if self.__pre_capture is None and self.__capture_start is not None:
             self.__pre_capture = self._self_list[: self.__capture_start]
         return self.__pre_capture
 
     @property
-    def _post_capture(self):
+    def _post_capture(self) -> List[T]:
         """A slice of the list pattern after the section to be captured when matching."""
         if self.__post_capture is None:
             self.__post_capture = self._self_list[
@@ -243,7 +235,7 @@ class IList(types.MLType):
         return self.__post_capture
 
     @classmethod
-    def __from_node(cls, head: "_Node") -> "IList":
+    def __from_node(cls, head: "_Node[T]") -> "IList[T]":
         """Generates a slice of the old IList given one node of that list.
 
         In this case, the new list shares the same memory as the old list
@@ -259,7 +251,7 @@ class IList(types.MLType):
         i_list._head = head
         return i_list
 
-    def __set_size_from_args(self, args: Tuple[Any]):
+    def __set_size_from_args(self, args: Tuple[T]):
         """Updates the size of this list basing on the args passed.
 
         Args:
@@ -269,7 +261,7 @@ class IList(types.MLType):
         if args_len > 0:
             self.__size = args_len
 
-    def __initialize_from_tuple(self, args: Tuple[Any]):
+    def __initialize_from_tuple(self, args: Tuple[T]):
         """Initializes the list using items passed to it as a tuple.
 
         Initializes the current IList, generating nodes corresponding to the args passed
@@ -305,7 +297,7 @@ class IList(types.MLType):
             yield curr.value
             curr = curr.next
 
-    def __add__(self, other: Any) -> "IList":
+    def __add__(self, other: "IList[T]") -> "IList[T]":
         """Creates a new list with the current list and the `other` list merged.
 
         Args:
@@ -324,7 +316,7 @@ class IList(types.MLType):
 
         return IList(*self, *other)
 
-    def __getitem__(self, item: Union[slice, int]) -> Union["IList", Any]:
+    def __getitem__(self, item: Union[slice, int]) -> Union["IList[T]", Any]:
         """Makes this list subscriptable and sliceable.
 
         Args:
@@ -354,19 +346,22 @@ class IList(types.MLType):
         return f"[{', '.join(map_to_str(self))}]"
 
 
-class _Node:
+Q = TypeVar("Q")
+
+
+class _Node(Generic[Q]):
     __slots__ = ["_data", "_next"]
 
-    def __init__(self, _data: Any, _next: Optional["_Node"] = None):
+    def __init__(self, _data: Q, _next: Optional["_Node[Q]"] = None):
         self._data = _data
         self._next = _next
 
     @property
-    def value(self):
+    def value(self) -> Q:
         return self._data
 
     @property
-    def next(self):
+    def next(self) -> "_Node[Q]":
         return self._next
 
     def __lt__(self, other):

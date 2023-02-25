@@ -27,12 +27,42 @@ Typical Usage:
     ```
 """
 import dataclasses
-import json
-from typing import Dict, Any, Type, Callable, Tuple, TypeVar
+import importlib
+import inspect
+import re
+from typing import (
+    Dict,
+    Any,
+    Type,
+    Callable,
+    Tuple,
+    TypeVar,
+    Optional,
+    Mapping,
+    Set,
+    List,
+    Union,
+)
 
 from typing_extensions import dataclass_transform
 
 from funml import utils, types
+
+
+_compound_type_regex = re.compile(r"tuple|list|set|dict")
+_compound_type_generic_type_map = {
+    "tuple": "Tuple",
+    "dict": "Dict",
+    "list": "List",
+    "set": "Set",
+}
+_default_globals = {
+    "Tuple": Tuple,
+    "Dict": Dict,
+    "Set": Set,
+    "List": List,
+    "Union": Union,
+}
 
 
 R = TypeVar("R", bound="Record")
@@ -47,7 +77,7 @@ def to_dict(v: "Record") -> Dict[str, Any]:
     Returns:
         the dictionary representation of the record
     """
-    return dataclasses.asdict(v)
+    return dict(v)
 
 
 @dataclass_transform(
@@ -87,8 +117,7 @@ def record(cls: Type[R]) -> Type[R]:
         # prints {'red': 75, 'green': 0, 'blue': 130, 'alpha': 1}
         ```
     """
-    annotations = utils.get_cls_annotations(cls, eval_str=True)
-    defaults = utils.get_cls_defaults(cls, annotations=annotations)
+    _annotations = cls.__annotations__
 
     return dataclasses.dataclass(
         type(
@@ -98,10 +127,11 @@ def record(cls: Type[R]) -> Type[R]:
                 cls,
             ),
             {
-                "__annotations__": annotations,
-                "__slots__": tuple(annotations.keys()),
-                "__dataclass_fields__": annotations,
-                "__defaults__": defaults,
+                "__annotations__": _annotations,
+                "__slots__": tuple(_annotations.keys()),
+                "__defaults__": _get_cls_defaults(cls, _annotations=_annotations),
+                "__is_normalized__": False,
+                "__module_path__": cls.__module__,
             },
         ),
         init=False,
@@ -147,8 +177,20 @@ class Record(types.MLType):
     """
 
     __defaults__: Dict[str, Any] = {}
+    __is_normalized__: bool = False
+    __normalize_annotations__: Callable[[Type], Dict[str, Any]]
+    __module_path__: str
 
     def __init__(self, **kwargs: Any):
+        frame = inspect.currentframe()
+        try:
+            self._normalize(
+                _globals=dict(frame.f_back.f_globals),
+                _locals=dict(frame.f_back.f_locals),
+            )
+        finally:
+            del frame
+
         kwargs = {**self.__defaults__, **kwargs}
         self.__attrs = kwargs
 
@@ -159,6 +201,36 @@ class Record(types.MLType):
 
         for k, v in kwargs.items():
             setattr(self, k, v)
+
+    @classmethod
+    def _normalize(cls, _globals: Dict[str, Any], _locals: Dict[str, Any]):
+        """Normalizes any lazy imports in annotations and the dependent variables"""
+        if not cls.__is_normalized__:
+            module = importlib.import_module(cls.__module_path__)
+            _globals.update(_default_globals)
+            _globals.update(getattr(module, "__dict__", {}))
+            _annotations = {
+                key: value
+                if not isinstance(value, str)
+                else _parse_lazy_type(_to_generic(value), _globals, _locals)
+                for key, value in cls.__annotations__.items()
+            }
+
+            cls.__annotations__ = _annotations
+            cls._validate_class_defaults()
+            cls.__dataclass_fields__ = _annotations
+            cls.__is_normalized__ = True
+
+    @classmethod
+    def _validate_class_defaults(cls):
+        """Checks whether the class default values are valid with regards to the annotations"""
+        for k, v in cls.__defaults__.items():
+            type_ = cls.__annotations__[k]
+
+            if not utils.is_type(v, type_):
+                raise TypeError(
+                    f"attribute {k} should be of type {type_}; got default: {v}"
+                )
 
     def _is_like(self, other) -> bool:
         """See Base Class: [`MLType`][funml.types.MLType]"""
@@ -177,20 +249,67 @@ class Record(types.MLType):
             types.Operation(func=lambda *args: do(*args))
         )
 
-    @classmethod
-    def from_json(cls, value: str) -> "Record":
-        """See Base Class: [`MLType`][funml.types.MLType]"""
-        try:
-            kwargs = json.loads(value)
-            return cls(**kwargs)
-        except Exception as exp:
-            raise ValueError(
-                f"unable to deserialize JSON {value} to {cls}. The following error occurred {exp}"
-            )
-
     def __str__(self):
         """A readable representation of this type."""
         return f"{self.__attrs}"
 
     def __iter__(self):
         return ((k, v) for k, v in self.__attrs.items())
+
+
+def _to_generic(annotation: str) -> str:
+    """Converts a future annotation like list[str] to a generic annotation e.g. List[str]
+
+    This is just for compatibility when it comes to python < 3.10
+
+    Args:
+        annotation: the annotation in its string form
+
+    Returns:
+        the annotation in string form showcasing its Generic equivalent
+    """
+    union_args = annotation.split("|")
+    if len(union_args) > 1:
+        annotation = f"Union[{','.join(union_args)}]"
+
+    return _compound_type_regex.sub(
+        lambda v: _compound_type_generic_type_map[v.string[v.start() : v.end()]],
+        annotation,
+    )
+
+
+def _parse_lazy_type(
+    value: str,
+    __globals: Optional[Dict[str, Any]] = ...,
+    __locals: Optional[Mapping[str, Any]] = ...,
+):
+    """Converts a type value expressed as a string into its python value."""
+    try:
+        value = value.strip("'")
+        return eval(value, __globals, __locals)
+    except TypeError as exp:
+        if "not subscriptable" in f"{exp}":
+            # ignore types that are not supported in the given version
+            return Any
+        raise exp
+
+
+def _get_cls_defaults(cls: type, _annotations: Dict[str, type]) -> Dict[str, Any]:
+    """Retrieves all default values of a class attributes.
+
+    Args:
+        cls: the class
+        _annotations: the annotations of the class
+
+    Returns:
+        a dictionary of attributes and their default values
+    """
+    defaults = {}
+
+    for attr, type_ in _annotations.items():
+        try:
+            defaults[attr] = getattr(cls, attr)
+        except AttributeError:
+            pass
+
+    return defaults
