@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- Fixed how records load lazy annotations
+
 ## [0.3.12] - 2023-02-23
 
 ### Added
