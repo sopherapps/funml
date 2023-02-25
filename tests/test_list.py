@@ -213,20 +213,9 @@ def test_from_json_strict():
         ),
     ]
 
-    error_test_data = [
-        ('["foo", 6.0]', IList[str]),
-        ("[true, -6.0, 7]", IList[int]),
-    ]
-
     for item, type_, expected in test_data:
         got = from_json(type_=type_, value=item)
         assert got == expected
-
-    for item, type_ in error_test_data:
-        with pytest.raises(
-            ValueError, match=r".* value .* should be of type: .*, got .*"
-        ):
-            from_json(type_=type_, value=item)
 
 
 def test_from_json_not_strict():
@@ -292,3 +281,8 @@ def test_from_json_not_strict():
 
     for item, type_, expected in test_data:
         assert from_json(type_=type_, value=item, strict=False) == expected
+
+        with pytest.raises(
+            ValueError, match=r".* value .* should be of type: .*, got .*"
+        ):
+            from_json(type_=type_, value=item)

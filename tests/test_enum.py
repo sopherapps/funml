@@ -193,7 +193,7 @@ def test_from_json_strict():
     ]
 
     for item in test_data:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"unable to deserialize JSON.*"):
             from_json(Alpha, item)
 
         assert from_json(Alpha, item, strict=False) == item
