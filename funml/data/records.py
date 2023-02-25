@@ -76,6 +76,31 @@ def to_dict(v: "Record") -> Dict[str, Any]:
 
     Returns:
         the dictionary representation of the record
+
+    Example:
+        ```python
+        import funml as ml
+
+
+        @ml.record
+        class Department:
+            seniors: list[str]
+            juniors: List[str]
+            locations: tuple[str, ...]
+            misc: dict[str, Any]
+            head: str
+
+        sc_dept = Department(
+            seniors=["Joe", "Jane"],
+            juniors=["Herbert", "Leo"],
+            locations=("Kasasa", "Bujumbura", "Bugahya"),
+            misc={"short_name": "ScDept"},
+            head="John",
+        )
+
+        data = ml.to_dict(sc_dept)
+        print(data)
+        ```
     """
     return dict(v)
 

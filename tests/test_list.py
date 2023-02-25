@@ -2,9 +2,8 @@ from typing import Any
 
 import pytest
 
-from funml import l, imap, ifilter, ireduce, Enum, record, to_json
+from funml import l, imap, ifilter, ireduce, Enum, record, to_json, from_json
 from funml.data.lists import IList
-from funml.json import from_json
 
 
 def test_list_creation():

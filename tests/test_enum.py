@@ -2,8 +2,7 @@ from typing import List, Dict, Tuple
 
 import pytest
 
-from funml import Option, Result, Enum, record, to_json
-from funml.json import from_json
+from funml import Option, Result, Enum, record, to_json, from_json
 
 
 def test_enum_creation():

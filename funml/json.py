@@ -17,6 +17,42 @@ def to_json(value: Any) -> str:
 
     Returns:
         the JSON string representation of this instance
+
+    Example:
+        ```python
+        import funml as ml
+
+
+        @ml.record
+        class Student:
+            name: str
+            favorite_color: "Color"
+
+        @ml.record
+        class Color:
+            r: int
+            g: int
+            b: int
+            a: "Alpha"
+
+        class Alpha(ml.Enum):
+            OPAQUE = None
+            TRANSLUCENT = float
+
+        items = [
+            ml.l(
+                True,
+                Color(r=8, g=4, b=78, a=Alpha.OPAQUE),
+                Color(r=55, g=40, b=9, a=Alpha.TRANSLUCENT(0.4)),
+            ),
+            Color(r=8, g=4, b=78, a=Alpha.OPAQUE),
+            Alpha.TRANSLUCENT(0.4),
+        ]
+
+        for item in items:
+            item_json = ml.to_json(item)
+            print(item_json)
+        ```
     """
     if isinstance(value, Enum):
         return _enum_to_json(value)
@@ -52,7 +88,7 @@ T = TypeVar("T")
 Q = TypeVar("Q")
 
 
-def from_json(type_: Type[T], value: str, strict=True) -> T:
+def from_json(type_: Type[T], value: str, strict: bool = True) -> T:
     """Converts a JSON string into the given type.
 
     If strict is True, an error is returned if the JSON string cannot be converted into
@@ -64,13 +100,61 @@ def from_json(type_: Type[T], value: str, strict=True) -> T:
         type_: the typing annotation to which the JSON string is to be converted to
         value: the JSON string
         strict: whether the JSON string should be strictly converted to the given type
-         or left as the default primitive python objects
+            or left as the default primitive python objects
 
     Returns:
         the instance got from the JSON string
 
     Raises:
         ValueError: unable to deserialize JSON to given type
+
+    Example:
+        ```python
+        import funml as ml
+
+
+        @ml.record
+        class Student:
+            name: str
+            favorite_color: "Color"
+
+        @ml.record
+        class Color:
+            r: int
+            g: int
+            b: int
+            a: "Alpha"
+
+        class Alpha(ml.Enum):
+            OPAQUE = None
+            TRANSLUCENT = float
+
+        items = [
+            (
+                ml.IList[Color],
+                (
+                "["
+                '{"name": "John Doe", "favorite_color": {"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: \\"OPAQUE\\""}}, '
+                '{"name": "Jane Doe", "favorite_color": {"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}}'
+                "]"
+                )
+            ),
+            (Color, '{"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}'),
+            (Alpha, "Alpha.TRANSLUCENT: 0.4"),
+        ]
+
+        # setting strict to False can allow any json string to be converted to a python object,
+        # first attempting to convert it to the provided type, and if it fails,
+        # the output of an ordinary json.loads call is returned.
+        #
+        # However, when strict is True, ValueError's will be raised
+        # if the json string can't be converted into the given type
+        strict = True
+
+        for type_, item_json in items:
+            item = ml.from_json(type_=type_, value=item_json, strict=strict)
+            print(item)
+        ```
     """
     actual_type = extract_type(type_)
     frame = inspect.currentframe()

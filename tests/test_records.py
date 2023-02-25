@@ -6,8 +6,7 @@ from typing import Optional, List, Any
 
 import pytest
 
-from funml import record, to_dict, Enum, to_json
-from funml.json import from_json
+from funml import record, to_dict, Enum, to_json, from_json
 
 
 def test_records_created():

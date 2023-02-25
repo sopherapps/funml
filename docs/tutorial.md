@@ -113,6 +113,7 @@ We have some builtin primitive expressions like
 - `ml.is_none`
 - `ml.to_dict`
 - `ml.to_json`
+- `ml.from_json`
 
 So in our script, let's add a `main` function and in it, add the primitive expressions:
 
