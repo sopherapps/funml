@@ -2,6 +2,7 @@
 """
 import inspect
 import json
+import typing
 from typing import Any, TypeVar, Type, Mapping, Tuple, Union, Dict
 
 from funml import Enum, Record

@@ -2,8 +2,9 @@ from typing import Any
 
 import pytest
 
-from funml import l, imap, ifilter, ireduce, Enum, record, to_json, from_json
+from funml import l, imap, ifilter, ireduce, to_json, from_json
 from funml.data.lists import IList
+from tests import conftest
 
 
 def test_list_creation():
@@ -96,23 +97,6 @@ def test_tail():
 
 def test_to_json():
     """to_json method transforms list into a JSON string representation of list"""
-
-    @record
-    class Student:
-        name: str
-        favorite_color: "Color"
-
-    @record
-    class Color:
-        r: int
-        g: int
-        b: int
-        a: "Alpha"
-
-    class Alpha(Enum):
-        OPAQUE = None
-        TRANSLUCENT = float
-
     test_data = [
         (l(2, 3, 5), "[2, 3, 5]"),
         (l("foo", 6.0), '["foo", 6.0]'),
@@ -120,34 +104,38 @@ def test_to_json():
         (
             l(
                 True,
-                Color(r=8, g=4, b=78, a=Alpha.OPAQUE),
-                Color(r=55, g=40, b=9, a=Alpha.TRANSLUCENT(0.4)),
+                conftest.Color(r=8, g=4, b=78, a=[conftest.Alpha.OPAQUE]),
+                conftest.Color(r=55, g=40, b=9, a=[conftest.Alpha.TRANSLUCENT(0.4)]),
             ),
             (
                 "["
                 "true, "
-                '{"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: \\"OPAQUE\\""}, '
-                '{"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}'
+                '{"r": 8, "g": 4, "b": 78, "a": ["Alpha.OPAQUE: \\"OPAQUE\\""]}, '
+                '{"r": 55, "g": 40, "b": 9, "a": ["Alpha.TRANSLUCENT: 0.4"]}'
                 "]"
             ),
         ),
         (
             l(
                 True,
-                Student(
+                conftest.Student(
                     name="John Doe",
-                    favorite_color=Color(r=8, g=4, b=78, a=Alpha.OPAQUE),
+                    favorite_color=conftest.Color(
+                        r=8, g=4, b=78, a=[conftest.Alpha.OPAQUE]
+                    ),
                 ),
-                Student(
+                conftest.Student(
                     name="Jane Doe",
-                    favorite_color=Color(r=55, g=40, b=9, a=Alpha.TRANSLUCENT(0.4)),
+                    favorite_color=conftest.Color(
+                        r=55, g=40, b=9, a=[conftest.Alpha.TRANSLUCENT(0.4)]
+                    ),
                 ),
             ),
             (
                 "["
                 "true, "
-                '{"name": "John Doe", "favorite_color": {"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: \\"OPAQUE\\""}}, '
-                '{"name": "Jane Doe", "favorite_color": {"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}}'
+                '{"name": "John Doe", "favorite_color": {"r": 8, "g": 4, "b": 78, "a": ["Alpha.OPAQUE: \\"OPAQUE\\""]}}, '
+                '{"name": "Jane Doe", "favorite_color": {"r": 55, "g": 40, "b": 9, "a": ["Alpha.TRANSLUCENT: 0.4"]}}'
                 "]"
             ),
         ),
@@ -160,53 +148,41 @@ def test_to_json():
 def test_from_json_strict():
     """from_json with strict transforms a JSON string representation into an IList of given annotation"""
 
-    @record
-    class Student:
-        name: str
-        favorite_color: "Color"
-
-    @record
-    class Color:
-        r: int
-        g: int
-        b: int
-        a: "Alpha"
-
-    class Alpha(Enum):
-        OPAQUE = None
-        TRANSLUCENT = float
-
     test_data = [
         ("[2, 3, 5]", IList[Any], l(2, 3, 5)),
         (
             (
                 "["
-                '{"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: \\"OPAQUE\\""}, '
-                '{"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}'
+                '{"r": 8, "g": 4, "b": 78, "a": ["Alpha.OPAQUE: \\"OPAQUE\\""]}, '
+                '{"r": 55, "g": 40, "b": 9, "a": ["Alpha.TRANSLUCENT: 0.4"]}'
                 "]"
             ),
-            IList[Color],
+            IList[conftest.Color],
             l(
-                Color(r=8, g=4, b=78, a=Alpha.OPAQUE),
-                Color(r=55, g=40, b=9, a=Alpha.TRANSLUCENT(0.4)),
+                conftest.Color(r=8, g=4, b=78, a=[conftest.Alpha.OPAQUE]),
+                conftest.Color(r=55, g=40, b=9, a=[conftest.Alpha.TRANSLUCENT(0.4)]),
             ),
         ),
         (
             (
                 "["
-                '{"name": "John Doe", "favorite_color": {"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: \\"OPAQUE\\""}}, '
-                '{"name": "Jane Doe", "favorite_color": {"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}}'
+                '{"name": "John Doe", "favorite_color": {"r": 8, "g": 4, "b": 78, "a": ["Alpha.OPAQUE: \\"OPAQUE\\""]}}, '
+                '{"name": "Jane Doe", "favorite_color": {"r": 55, "g": 40, "b": 9, "a": ["Alpha.TRANSLUCENT: 0.4"]}}'
                 "]"
             ),
-            IList[Student],
+            IList[conftest.Student],
             l(
-                Student(
+                conftest.Student(
                     name="John Doe",
-                    favorite_color=Color(r=8, g=4, b=78, a=Alpha.OPAQUE),
+                    favorite_color=conftest.Color(
+                        r=8, g=4, b=78, a=[conftest.Alpha.OPAQUE]
+                    ),
                 ),
-                Student(
+                conftest.Student(
                     name="Jane Doe",
-                    favorite_color=Color(r=55, g=40, b=9, a=Alpha.TRANSLUCENT(0.4)),
+                    favorite_color=conftest.Color(
+                        r=55, g=40, b=9, a=[conftest.Alpha.TRANSLUCENT(0.4)]
+                    ),
                 ),
             ),
         ),
@@ -221,22 +197,6 @@ def test_from_json_not_strict():
     """from_json with not strict attempts to transform each item in a JSON string IList representation to the given annotation,
     defaulting to the expected JSON.loads output on error"""
 
-    @record
-    class Student:
-        name: str
-        favorite_color: "Color"
-
-    @record
-    class Color:
-        r: int
-        g: int
-        b: int
-        a: "Alpha"
-
-    class Alpha(Enum):
-        OPAQUE = None
-        TRANSLUCENT = float
-
     test_data = [
         ('["foo", 6.0]', IList[int], l("foo", 6)),
         ("[true, -6.0, 7]", IList[int], l(1, -6, 7)),
@@ -244,35 +204,39 @@ def test_from_json_not_strict():
             (
                 "["
                 "true, "
-                '{"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: \\"OPAQUE\\""}, '
-                '{"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}'
+                '{"r": 8, "g": 4, "b": 78, "a": ["Alpha.OPAQUE: \\"OPAQUE\\""]}, '
+                '{"r": 55, "g": 40, "b": 9, "a": ["Alpha.TRANSLUCENT: 0.4"]}'
                 "]"
             ),
-            IList[Color],
+            IList[conftest.Color],
             l(
                 True,
-                Color(r=8, g=4, b=78, a=Alpha.OPAQUE),
-                Color(r=55, g=40, b=9, a=Alpha.TRANSLUCENT(0.4)),
+                conftest.Color(r=8, g=4, b=78, a=[conftest.Alpha.OPAQUE]),
+                conftest.Color(r=55, g=40, b=9, a=[conftest.Alpha.TRANSLUCENT(0.4)]),
             ),
         ),
         (
             (
                 "["
-                '{"name": "John Doe", "favorite_color": {"r": 8, "g": 4, "b": 78, "a": "Alpha.OPAQUE: \\"OPAQUE\\""}}, '
+                '{"name": "John Doe", "favorite_color": {"r": 8, "g": 4, "b": 78, "a": ["Alpha.OPAQUE: \\"OPAQUE\\""]}}, '
                 '"foo", '
-                '{"name": "Jane Doe", "favorite_color": {"r": 55, "g": 40, "b": 9, "a": "Alpha.TRANSLUCENT: 0.4"}}'
+                '{"name": "Jane Doe", "favorite_color": {"r": 55, "g": 40, "b": 9, "a": ["Alpha.TRANSLUCENT: 0.4"]}}'
                 "]"
             ),
-            IList[Student],
+            IList[conftest.Student],
             l(
-                Student(
+                conftest.Student(
                     name="John Doe",
-                    favorite_color=Color(r=8, g=4, b=78, a=Alpha.OPAQUE),
+                    favorite_color=conftest.Color(
+                        r=8, g=4, b=78, a=[conftest.Alpha.OPAQUE]
+                    ),
                 ),
                 "foo",
-                Student(
+                conftest.Student(
                     name="Jane Doe",
-                    favorite_color=Color(r=55, g=40, b=9, a=Alpha.TRANSLUCENT(0.4)),
+                    favorite_color=conftest.Color(
+                        r=55, g=40, b=9, a=[conftest.Alpha.TRANSLUCENT(0.4)]
+                    ),
                 ),
             ),
         ),

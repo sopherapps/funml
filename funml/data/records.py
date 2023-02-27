@@ -42,6 +42,7 @@ from typing import (
     Set,
     List,
     Union,
+    ForwardRef,
 )
 
 from typing_extensions import dataclass_transform
@@ -234,12 +235,14 @@ class Record(types.MLType):
             module = importlib.import_module(cls.__module_path__)
             _globals.update(_default_globals)
             _globals.update(getattr(module, "__dict__", {}))
-            _annotations = {
-                key: value
-                if not isinstance(value, str)
-                else _parse_lazy_type(_to_generic(value), _globals, _locals)
-                for key, value in cls.__annotations__.items()
-            }
+            _annotations = {}
+
+            for key, value in cls.__annotations__.items():
+                if isinstance(value, str):
+                    value = _parse_lazy_type(_to_generic(value), _globals, _locals)
+
+                value = _evaluate_forward_refs(value, _globals, _locals)
+                _annotations[key] = value
 
             cls.__annotations__ = _annotations
             cls._validate_class_defaults()
@@ -320,6 +323,22 @@ def _parse_lazy_type(
             # ignore types that are not supported in the given version
             return Any
         raise exp
+
+
+def _evaluate_forward_refs(
+    type_: Type,
+    __globals: Optional[Dict[str, Any]] = ...,
+    __locals: Optional[Mapping[str, Any]] = ...,
+) -> Type:
+    """Evaluates any forward refs in the given type"""
+    try:
+        type_.__args__ = tuple(
+            _evaluate_forward_refs(arg, __globals, __locals) for arg in type_.__args__
+        )
+    except AttributeError:
+        if isinstance(type_, ForwardRef):
+            return eval(type_.__forward_arg__, __globals, __locals)
+    return type_
 
 
 def _get_cls_defaults(cls: type, _annotations: Dict[str, type]) -> Dict[str, Any]:

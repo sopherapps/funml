@@ -3,6 +3,7 @@ from typing import List, Dict, Tuple
 import pytest
 
 from funml import Option, Result, Enum, record, to_json, from_json
+from tests import conftest
 
 
 def test_enum_creation():
@@ -180,11 +181,6 @@ def test_from_json():
 
 def test_from_json_strict():
     """from_json with strict transforms a JSON string representation into an Enum or errors"""
-
-    class Alpha(Enum):
-        OPAQUE = None
-        TRANSLUCENT = float
-
     test_data = [
         '"Alph.OPAQUE: "OPAQUE""',
         '"OPAQUE: "OPAQUE""',
@@ -193,6 +189,6 @@ def test_from_json_strict():
 
     for item in test_data:
         with pytest.raises(ValueError, match=r"unable to deserialize JSON.*"):
-            from_json(Alpha, item)
+            from_json(conftest.Alpha, item)
 
-        assert from_json(Alpha, item, strict=False) == item
+        assert from_json(conftest.Alpha, item, strict=False) == item
