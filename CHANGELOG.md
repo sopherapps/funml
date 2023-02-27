@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.14] - 2023-02-27
+
+### Added
+
+### Changed
+
+### Fixed
+
+- Fixed incompatible JSON error produced wit to_json on enums that have no associated data or whose data is `str`
+
 ## [0.3.13] - 2023-02-25
 
 ### Added
