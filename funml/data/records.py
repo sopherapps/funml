@@ -278,6 +278,9 @@ class Record(types.MLType):
         """A readable representation of this type."""
         return f"{self.__attrs}"
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}{self.__attrs}"
+
     def __iter__(self):
         return ((k, v) for k, v in self.__attrs.items())
 

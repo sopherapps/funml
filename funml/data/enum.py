@@ -229,6 +229,9 @@ class Enum(types.MLType):
         """Generates a readable presentation of the enum."""
         return f"<{self.name}: {self.value}>"
 
+    def __repr__(self):
+        return f"<{self.name}: {self.value}>"
+
 
 def _get_enum_captured_value(instance: Enum):
     """Gets the captured value for a given enum instance"""

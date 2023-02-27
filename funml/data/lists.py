@@ -345,6 +345,10 @@ class IList(types.MLType, Generic[T]):
         map_to_str = imap(str)
         return f"[{', '.join(map_to_str(self))}]"
 
+    def __repr__(self):
+        map_to_str = imap(str)
+        return f"IList({', '.join(map_to_str(self))})"
+
 
 Q = TypeVar("Q")
 
