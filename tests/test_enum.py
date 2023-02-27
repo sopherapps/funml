@@ -97,7 +97,7 @@ def test_to_json():
         TRANSLUCENT_AS_TUPLE_ANNOTATION = Tuple[int, ...]
 
     test_data = [
-        (Alpha.OPAQUE, '"Alpha.OPAQUE: "OPAQUE""'),
+        (Alpha.OPAQUE, '"Alpha.OPAQUE: \\"OPAQUE\\""'),
         (
             Alpha.TRANSLUCENT_AS_NUM(Number(num=12, decimals=[8, 7])),
             '"Alpha.TRANSLUCENT_AS_NUM: [{"num": 12, "decimals": [8, 7]}]"',
@@ -146,7 +146,7 @@ def test_from_json():
         TRANSLUCENT_AS_TUPLE_ANNOTATION = Tuple[int, ...]
 
     test_data = [
-        ('"Alpha.OPAQUE: "OPAQUE""', Alpha.OPAQUE),
+        ('"Alpha.OPAQUE: \\"OPAQUE\\""', Alpha.OPAQUE),
         (
             '"Alpha.TRANSLUCENT_AS_NUM: [{"num": 12, "decimals": [8, 7]}]"',
             Alpha.TRANSLUCENT_AS_NUM(Number(num=12, decimals=[8, 7])),

@@ -70,6 +70,8 @@ def to_json(value: Any) -> str:
 
 def _enum_to_json(item: Enum) -> str:
     """Converts an enum into JSON string"""
+    if isinstance(item.value, str):
+        return f'"{item.name}: \\"{item.value}\\""'
     return f'"{item.name}: {to_json(item.value)}"'
 
 
