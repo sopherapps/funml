@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.15] - 2023-02-27
+
+### Added
+
+- Add __repr__ to data types of Record, Enum and IList
+
+### Changed
+
+### Fixed
+
+- Fix incomplete json parsing of records due to nested typing.ForwardRefs in field annotations.
+
 ## [0.3.14] - 2023-02-27
 
 ### Added
