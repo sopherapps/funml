@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.16] - 2023-03-02
+
+### Added
+
+- Add the `get_annotations` class method to records so as to hide the potentially unevaluated `__annotations__`
+
+### Changed
+
+### Fixed
+
 ## [0.3.15] - 2023-02-27
 
 ### Added
