@@ -180,6 +180,9 @@ class Record(types.MLType):
     the expected attributes and then is used to create new instances
     of that record type.
 
+    Make sure you don't access the `__annotations__` class property directly as it may not have
+    all annotations normalized from string to their actual types yet. Instead use the `get_annotations` class method.
+
     This type is usually not used directly but rather we use the [@record](funml.record) decorator
 
     Example:
@@ -204,7 +207,6 @@ class Record(types.MLType):
 
     __defaults__: Dict[str, Any] = {}
     __is_normalized__: bool = False
-    __normalize_annotations__: Callable[[Type], Dict[str, Any]]
     __module_path__: str
 
     def __init__(self, **kwargs: Any):
@@ -227,6 +229,22 @@ class Record(types.MLType):
 
         for k, v in kwargs.items():
             setattr(self, k, v)
+
+    @classmethod
+    def get_annotations(
+        cls, _globals: Dict[str, Any], _locals: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Gets the annotations of this record.
+
+        Args:
+            _globals: the dict containing any global variables relevant for the current context
+            _locals: the dict containing any local variables relevant for the current context
+
+        Returns:
+            the dict of the annotations of this class with each annotation evaluated from string to its right type.
+        """
+        cls._normalize(_globals, _locals)
+        return cls.__annotations__
 
     @classmethod
     def _normalize(cls, _globals: Dict[str, Any], _locals: Dict[str, Any]):

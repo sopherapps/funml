@@ -260,7 +260,7 @@ def _record_from_json(
 
         try:
             parsed_obj = _cast_to_signature(
-                type_.__annotations__, obj, _globals, _locals
+                type_.get_annotations(_globals, _locals), obj, _globals, _locals
             )
             return type_(**parsed_obj)
         except Exception as exp:
@@ -362,9 +362,8 @@ def _cast_to_annotation(
     actual_type = extract_type(annotation)
 
     if issubclass(actual_type, Record) and isinstance(value, dict):
-        actual_type._normalize(_globals, _locals)
         parsed_data = _cast_to_signature(
-            actual_type.__annotations__, value, _globals, _locals
+            actual_type.get_annotations(_globals, _locals), value, _globals, _locals
         )
         return actual_type(**parsed_data)
 
