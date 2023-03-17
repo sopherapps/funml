@@ -29,7 +29,7 @@ from .data.monads import (
     is_some,
 )
 from .data.records import record, to_dict, Record
-from .data.lists import l, imap, ifilter, ireduce
+from .data.lists import l, imap, ifilter, ireduce, IList
 from .pipeline import execute
 from .json import to_json, from_json
 
@@ -39,6 +39,7 @@ __all__ = [
     "Enum",
     "Option",
     "Result",
+    "IList",
     "if_ok",
     "if_err",
     "if_some",

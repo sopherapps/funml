@@ -20,30 +20,6 @@ Types
             - MLType
             - Operation
 
-Lists
---
-
-::: funml.data.lists
-    options:
-        members:
-            - IList
-
-Enums
---
-
-::: funml.data.enum
-    options:
-        members:
-            - Enum
-
-Records
---
-
-::: funml.data.records
-    options:
-        members:
-            - Record
-
 Errors
 ===
 

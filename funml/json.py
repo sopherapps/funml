@@ -2,11 +2,9 @@
 """
 import inspect
 import json
-import typing
 from typing import Any, TypeVar, Type, Mapping, Tuple, Union, Dict
 
-from funml import Enum, Record
-from funml.data.lists import IList
+from funml import Enum, Record, IList
 from funml.utils import right_pad_list, extract_type
 
 

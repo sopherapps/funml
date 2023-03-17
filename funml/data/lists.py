@@ -21,7 +21,7 @@ Typical Usage:
     value = add_9_transform(list1)
 
     # iterating data using head and
-    def print_head(v: ml.data.lists.IList) -> ml.data.lists.IList:
+    def print_head(v: ml.IList) -> ml.IList:
         print(v.head)
         return v.tail
 
@@ -47,7 +47,7 @@ def l(*args: Any) -> "IList":
     Creates a list of items of any type, that cannot be changed
     once created. It can only be used to create other lists, using methods on it like
 
-    - [`+`][funml.data.lists.IList.__add__] - to combine two separate lists into a new one containing elements of both
+    - [`+`][funml.IList.__add__] - to combine two separate lists into a new one containing elements of both
     - [`imap(fn)`][funml.imap] - to create a new list with each element transformed according to the given function `fn`
     - [`filter(fn)`][funml.ifilter] - to return a new list containing only elements that conform to the given function `fn`
 
@@ -55,7 +55,7 @@ def l(*args: Any) -> "IList":
         args: the items that make up the list
 
     Returns:
-        An immutable list, [`IList][funml.data.lists.IList], containing the items passed to it.
+        An immutable list, [`IList][funml.IList], containing the items passed to it.
 
     Example:
         ```python

@@ -2,8 +2,7 @@ from typing import Any
 
 import pytest
 
-from funml import l, imap, ifilter, ireduce, to_json, from_json
-from funml.data.lists import IList
+from funml import l, imap, ifilter, ireduce, to_json, from_json, IList
 from tests import conftest
 
 
