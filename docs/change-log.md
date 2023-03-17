@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.17] - 2023-03-17
+
+### Added
+
+### Changed
+
+- Added `IList` to the list of exports of the `funml` package
+
+### Fixed
+
 ## [0.3.16] - 2023-03-02
 
 ### Added
