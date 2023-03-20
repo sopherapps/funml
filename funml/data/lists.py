@@ -35,7 +35,17 @@ Typical Usage:
 """
 import json
 from functools import reduce
-from typing import Any, Optional, Callable, List, Tuple, Union, TypeVar, Generic
+from typing import (
+    Any,
+    Optional,
+    Callable,
+    List,
+    Tuple,
+    Union,
+    TypeVar,
+    Generic,
+    Generator,
+)
 
 from funml import types, utils
 from funml.types import Expression, Operation
@@ -62,6 +72,7 @@ def l(*args: Any) -> "IList":
         import funml as ml
 
         items = ml.l(120, 13, 40, 60, "hey", "men")
+        # or items = ml.l(item for item in values) where values is an iterable
 
         num_filter = ml.ifilter(lambda x: isinstance(x, (int, float)))
         str_filter = ml.ifilter(lambda x: isinstance(x, str))
@@ -162,6 +173,7 @@ class IList(types.MLType, Generic[T]):
         self.__list: Optional[List[T]] = None
         self._head: Optional["_Node"] = None
 
+        args = _eval_generator_args(args)
         self.__set_size_from_args(args)
         self.__initialize_from_tuple(args)
 
@@ -407,3 +419,19 @@ def _lists_match(schema: List[Any], actual: List[Any]):
             return False
 
     return True
+
+
+def _eval_generator_args(
+    args: Union[Tuple[T], Tuple[Generator[T, None, None]]]
+) -> Tuple[T]:
+    """Attempts to convert args that have a generator as first and only arg to a tuple.
+
+    Args:
+        args: the arguments that could either be a tuple of T or tuple of Generator[T]
+
+    Returns:
+        the args as a Tuple of T
+    """
+    if len(args) == 1 and isinstance(args[0], Generator):
+        return tuple(args[0])
+    return args

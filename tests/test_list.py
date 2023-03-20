@@ -18,6 +18,19 @@ def test_list_creation():
         assert list(l(*v)) == v
 
 
+def test_list_creation_via_generator():
+    """l creates an immutable IList when a generator is used as the only argument"""
+    test_data = [
+        [2, 3, 56],
+        ["foo", 6.0],
+        [True, "foo", 6.0, 7],
+        [(g for g in [1, 2]), "foo"],
+    ]
+
+    for v in test_data:
+        assert list(l(item for item in v)) == v
+
+
 def test_list_concatenation():
     """concatenation of lists is done by `+`"""
     test_data = [
