@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://sopherapps.github.io/funml/</loc>
+         <lastmod>2023-03-20</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://sopherapps.github.io/funml/change-log/</loc>
+         <lastmod>2023-03-20</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://sopherapps.github.io/funml/reference/</loc>
+         <lastmod>2023-03-20</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://sopherapps.github.io/funml/tutorial/</loc>
+         <lastmod>2023-03-20</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+</urlset>
