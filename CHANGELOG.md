@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.18] - 2023-03-20
+
+### Added
+
+- Add ability to construct IList from generator
+
+### Changed
+
+### Fixed
+
 ## [0.3.17] - 2023-03-17
 
 ### Added
